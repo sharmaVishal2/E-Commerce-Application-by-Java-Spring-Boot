@@ -5,16 +5,8 @@ import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
 
 const Home = ({ selectedCategory }) => {
-  const { data, isError, addToCart, refreshData } = useContext(AppContext);
+  const { data, isError, addToCart } = useContext(AppContext);
   const [products, setProducts] = useState([]);
-  const [isDataFetched, setIsDataFetched] = useState(false);
-
-  useEffect(() => {
-    if (!isDataFetched) {
-      refreshData();
-      setIsDataFetched(true);
-    }
-  }, [refreshData, isDataFetched]);
 
   useEffect(() => {
     if (data && data.length > 0) {
@@ -46,6 +38,8 @@ const Home = ({ selectedCategory }) => {
       };
 
       fetchImagesAndUpdateProducts();
+    } else {
+      setProducts([]);
     }
   }, [data]);
 

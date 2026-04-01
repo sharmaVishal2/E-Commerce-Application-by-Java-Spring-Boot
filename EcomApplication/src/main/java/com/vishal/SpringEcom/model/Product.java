@@ -1,5 +1,6 @@
 package com.vishal.springecom.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,6 +28,7 @@ public class Product {
     private String imageName;
     private String imageType;
     @Lob
+    @JsonIgnore
     private byte[] imageData;
 
     public Product(int id){

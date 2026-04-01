@@ -263,6 +263,7 @@ import AppContext from "../Context/Context";
 import axios from "../axios";
 import CheckoutPopup from "./CheckoutPopup";
 import { Button } from "react-bootstrap";
+import unplugged from "../assets/unplugged.png";
 
 const Cart = () => {
   const { cart, removeFromCart , clearCart } = useContext(AppContext);
@@ -272,14 +273,13 @@ const Cart = () => {
 
   useEffect(() => {
     const fetchImagesAndUpdateCart = async () => {
-      console.log("Cart", cart);
       try {
-        const response = await axios.get("/products");
-        const backendProductIds = response.data.map((product) => product.id);
-
-        const updatedCartItems = cart.filter((item) => backendProductIds.includes(item.id));
         const cartItemsWithImages = await Promise.all(
-          updatedCartItems.map(async (item) => {
+          cart.map(async (item) => {
+            if (!item.imageName) {
+              return { ...item, imageUrl: unplugged };
+            }
+
             try {
               const response = await axios.get(
                 `/product/${item.id}/image`,
@@ -290,11 +290,10 @@ const Cart = () => {
               return { ...item, imageUrl, imageFile };
             } catch (error) {
               console.error("Error fetching image:", error);
-              return { ...item, imageUrl: "placeholder-image-url" };
+              return { ...item, imageUrl: unplugged };
             }
           })
         );
-        console.log("cart",cart)
         setCartItems(cartItemsWithImages);
       } catch (error) {
         console.error("Error fetching product data:", error);
@@ -303,6 +302,8 @@ const Cart = () => {
 
     if (cart.length) {
       fetchImagesAndUpdateCart();
+    } else {
+      setCartItems([]);
     }
   }, [cart]);
 
@@ -356,10 +357,11 @@ const Cart = () => {
         const updatedStockQuantity = item.stockQuantity - item.quantity;
   
         const updatedProductData = { ...rest, stockQuantity: updatedStockQuantity };
-        console.log("updated product data", updatedProductData)
   
         const cartProduct = new FormData();
-        cartProduct.append("imageFile", item.imageFile);
+        if (item.imageFile) {
+          cartProduct.append("imageFile", item.imageFile);
+        }
         cartProduct.append(
           "product",
           new Blob([JSON.stringify(updatedProductData)], { type: "application/json" })
@@ -368,7 +370,6 @@ const Cart = () => {
         await axios
           .put(`/product/${item.id}`, cartProduct)
           .then(() => {
-            console.log("Product updated successfully:", (cartProduct));
           })
           .catch((error) => {
             console.error("Error updating product:", error);

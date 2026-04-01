@@ -4,6 +4,7 @@ import { useState } from "react";
 import AppContext from "../Context/Context";
 import AuthContext from "../Context/AuthContext";
 import axios from "../axios";
+import unplugged from "../assets/unplugged.png";
 
 const Product = () => {
   const { id } = useParams();
@@ -22,6 +23,8 @@ const Product = () => {
         setProduct(response.data);
         if (response.data.imageName) {
           fetchImage();
+        } else {
+          setImageUrl(unplugged);
         }
       } catch (error) {
         console.error("Error fetching product:", error);
