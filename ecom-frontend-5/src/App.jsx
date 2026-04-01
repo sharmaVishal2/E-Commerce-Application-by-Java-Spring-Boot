@@ -1,17 +1,18 @@
 import "./App.css";
-import { useState } from "react";
-import Home from "./components/Home";
+import { Suspense, lazy, useState } from "react";
 import Navbar from "./components/Navbar";
-import Cart from "./components/Cart";
-import AddProduct from "./components/AddProduct";
-import Product from "./components/Product";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import UpdateProduct from "./components/UpdateProduct";
-import Login from "./components/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Register from "./components/Register";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
+
+const Home = lazy(() => import("./components/Home"));
+const Cart = lazy(() => import("./components/Cart"));
+const AddProduct = lazy(() => import("./components/AddProduct"));
+const Product = lazy(() => import("./components/Product"));
+const UpdateProduct = lazy(() => import("./components/UpdateProduct"));
+const Login = lazy(() => import("./components/Login"));
+const Register = lazy(() => import("./components/Register"));
 
 function App() {
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -23,33 +24,41 @@ function App() {
   return (
     <BrowserRouter>
       <Navbar onSelectCategory={handleCategorySelect} />
-      <Routes>
-        <Route
-          path="/"
-          element={<Home selectedCategory={selectedCategory} />}
-        />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route
-          path="/add_product"
-          element={
-            <ProtectedRoute>
-              <AddProduct />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/product" element={<Product />} />
-        <Route path="/product/:id" element={<Product />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route
-          path="/product/update/:id"
-          element={
-            <ProtectedRoute>
-              <UpdateProduct />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+      <Suspense
+        fallback={
+          <h2 className="text-center" style={{ padding: "10rem" }}>
+            Loading...
+          </h2>
+        }
+      >
+        <Routes>
+          <Route
+            path="/"
+            element={<Home selectedCategory={selectedCategory} />}
+          />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/add_product"
+            element={
+              <ProtectedRoute>
+                <AddProduct />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/product" element={<Product />} />
+          <Route path="/product/:id" element={<Product />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route
+            path="/product/update/:id"
+            element={
+              <ProtectedRoute>
+                <UpdateProduct />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

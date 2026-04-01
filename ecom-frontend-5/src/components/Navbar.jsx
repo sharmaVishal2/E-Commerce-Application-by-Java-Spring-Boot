@@ -20,6 +20,28 @@ const Navbar = ({ onSelectCategory }) => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (input.length < 1) {
+      setShowSearchResults(false);
+      setSearchResults([]);
+      setNoResults(false);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setShowSearchResults(true);
+      try {
+        const response = await axios.get(`/products/search?keyword=${input}`);
+        setSearchResults(response.data);
+        setNoResults(response.data.length === 0);
+      } catch (error) {
+        console.error("Error searching:", error);
+      }
+    }, 350);
+
+    return () => clearTimeout(timeoutId);
+  }, [input]);
+
   const fetchData = async () => {
     try {
       const response = await axios.get("/products");
@@ -29,22 +51,8 @@ const Navbar = ({ onSelectCategory }) => {
     }
   };
 
-  const handleChange = async (value) => {
+  const handleChange = (value) => {
     setInput(value);
-    if (value.length >= 1) {
-      setShowSearchResults(true);
-      try {
-        const response = await axios.get(`/products/search?keyword=${value}`);
-        setSearchResults(response.data);
-        setNoResults(response.data.length === 0);
-      } catch (error) {
-        console.error("Error searching:", error);
-      }
-    } else {
-      setShowSearchResults(false);
-      setSearchResults([]);
-      setNoResults(false);
-    }
   };
 
   const handleCategorySelect = (category) => {
