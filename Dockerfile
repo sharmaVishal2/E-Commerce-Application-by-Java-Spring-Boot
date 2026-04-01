@@ -2,9 +2,7 @@ FROM eclipse-temurin:21-jdk
 
 WORKDIR /app
 
-COPY . .
-
-WORKDIR /app/EcomApplication   # 👈 IMPORTANT LINE
+COPY EcomApplication/ .
 
 RUN chmod +x mvnw
 RUN ./mvnw clean install -DskipTests
