@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY . .
 
+WORKDIR /app/EcomApplication   # 👈 IMPORTANT LINE
+
 RUN chmod +x mvnw
 RUN ./mvnw clean install -DskipTests
 
