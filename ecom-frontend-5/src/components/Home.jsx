@@ -21,6 +21,10 @@ const Home = ({ selectedCategory }) => {
       const fetchImagesAndUpdateProducts = async () => {
         const updatedProducts = await Promise.all(
           data.map(async (product) => {
+            if (!product.imageName) {
+              return { ...product, imageUrl: unplugged };
+            }
+
             try {
               const response = await axios.get(
                 `/product/${product.id}/image`,
