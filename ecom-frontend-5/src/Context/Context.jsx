@@ -4,6 +4,7 @@ import { useState, useEffect, createContext } from "react";
 const AppContext = createContext({
   data: [],
   isError: "",
+  isLoading: true,
   cart: [],
   addToCart: (product) => {},
   removeFromCart: (productId) => {},
@@ -15,6 +16,7 @@ const AppContext = createContext({
 export const AppProvider = ({ children }) => {
   const [data, setData] = useState([]);
   const [isError, setIsError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [cart, setCart] = useState(JSON.parse(localStorage.getItem('cart')) || []);
 
 
@@ -44,11 +46,15 @@ export const AppProvider = ({ children }) => {
   };
 
   const refreshData = async () => {
+    setIsLoading(true);
+    setIsError("");
     try {
       const response = await axios.get("/products");
       setData(response.data);
     } catch (error) {
       setIsError(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -65,7 +71,7 @@ export const AppProvider = ({ children }) => {
   }, [cart]);
   
   return (
-    <AppContext.Provider value={{ data, isError, cart, addToCart, removeFromCart,refreshData, clearCart  }}>
+    <AppContext.Provider value={{ data, isError, isLoading, cart, addToCart, removeFromCart,refreshData, clearCart  }}>
       {children}
     </AppContext.Provider>
   );

@@ -5,46 +5,50 @@ import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
 
 const Home = ({ selectedCategory }) => {
-  const { data, isError, addToCart } = useContext(AppContext);
+  const { data, isError, isLoading, addToCart } = useContext(AppContext);
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (data && data.length > 0) {
-      setLoading(true);
-      const fetchImagesAndUpdateProducts = async () => {
-        const updatedProducts = await Promise.all(
-          data.map(async (product) => {
-            if (!product.imageName) {
-              return { ...product, imageUrl: unplugged };
-            }
-
-            try {
-              const response = await axios.get(
-                `/product/${product.id}/image`,
-                { responseType: "blob" }
-              );
-              const imageUrl = URL.createObjectURL(response.data);
-              return { ...product, imageUrl };
-            } catch (error) {
-              console.error(
-                "Error fetching image for product ID:",
-                product.id,
-                error
-              );
-              return { ...product, imageUrl: unplugged };
-            }
-          })
-        );
-        setProducts(updatedProducts);
-        setLoading(false);
-      };
-
-      fetchImagesAndUpdateProducts();
-    } else {
+    if (!data || data.length === 0) {
       setProducts([]);
-      setLoading(false);
+      return;
     }
+
+    let isMounted = true;
+    const objectUrls = [];
+
+    const fetchImagesAndUpdateProducts = async () => {
+      const updatedProducts = await Promise.all(
+        data.map(async (product) => {
+          if (!product.imageName) {
+            return { ...product, imageUrl: unplugged };
+          }
+
+          try {
+            const response = await axios.get(
+              `/product/${product.id}/image`,
+              { responseType: "blob" }
+            );
+            const imageUrl = URL.createObjectURL(response.data);
+            objectUrls.push(imageUrl);
+            return { ...product, imageUrl };
+          } catch (error) {
+            return { ...product, imageUrl: unplugged };
+          }
+        })
+      );
+
+      if (isMounted) {
+        setProducts(updatedProducts);
+      }
+    };
+
+    fetchImagesAndUpdateProducts();
+
+    return () => {
+      isMounted = false;
+      objectUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
   }, [data]);
 
   const filteredProducts = selectedCategory
@@ -53,17 +57,17 @@ const Home = ({ selectedCategory }) => {
 
   if (isError) {
     return (
-      <h2 className="text-center" style={{ padding: "18rem" }}>
-      <img src={unplugged} alt="Error" style={{ width: '100px', height: '100px' }}/>
-      </h2>
+      <div className="home-status">
+        <img src={unplugged} alt="Error" style={{ width: "100px", height: "100px" }} />
+      </div>
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <h2 className="text-center" style={{ padding: "10rem" }}>
-        Loading products...
-      </h2>
+      <div className="home-status">
+        <h2 className="text-center">Loading products...</h2>
+      </div>
     );
   }
 
@@ -80,16 +84,9 @@ const Home = ({ selectedCategory }) => {
         }}
       >
         {filteredProducts.length === 0 ? (
-          <h2
-            className="text-center"
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            No Products Available
-          </h2>
+          <div className="home-status home-status-inline">
+            <h2 className="text-center">No Products Available</h2>
+          </div>
         ) : (
           filteredProducts.map((product) => {
             const { id, brand, name, price, productAvailable, imageUrl } =
