@@ -61,10 +61,12 @@ const Home = () => {
       <section className="hero-section">
         <div className="hero-copy">
           <p className="hero-tag">Vishal Storefront</p>
-          <h1>Shop practical tech and lifestyle picks without waiting on a heavy first load.</h1>
+          <h1>Your destination for everyday tech, fashion, and lifestyle essentials.</h1>
           <p className="hero-description">
-            Browse a lightweight landing page first, then jump into the full catalog
-            once the backend is already warm. Faster first impression, same store.
+            Explore a curated ecommerce experience built for practical shopping:
+            smartphones, laptops, headphones, electronics, fashion, and more in one
+            clean catalog. Start here, then move into the full product collection
+            when you are ready to browse.
           </p>
           <div className="hero-actions">
             <Link to="/products" className="hero-button primary">
@@ -82,11 +84,12 @@ const Home = () => {
         </div>
         <div className="hero-panel">
           <div className="hero-panel-card">
-            <span className="hero-panel-label">Why this layout</span>
-            <h3>Render wakes up in the background while users get a usable homepage.</h3>
+            <span className="hero-panel-label">About The Store</span>
+            <h3>Built to showcase products clearly, with a faster first experience for visitors.</h3>
             <p>
-              Featured products below still trigger a small API call, so by the time
-              someone clicks into the catalog the backend is often already responsive.
+              The featured section below loads a small product preview first. That gives
+              visitors something useful to see immediately and also helps wake the
+              backend before they open the full catalog.
             </p>
           </div>
         </div>
@@ -96,7 +99,7 @@ const Home = () => {
         <div className="featured-header">
           <div>
             <p className="hero-tag">Featured Preview</p>
-            <h2>Two products loaded early to warm the backend</h2>
+            <h2>Start with a quick look at a few products from the store</h2>
           </div>
           <Link to="/products" className="featured-link">
             See full catalog
