@@ -1,13 +1,13 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "../axios";
 import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
 
-const Home = () => {
+  const Home = () => {
   const { data, isLoading } = useContext(AppContext);
   const [featuredCards, setFeaturedCards] = useState([]);
-  const featuredProducts = data.slice(0, 2);
+  const featuredProducts = useMemo(() => data.slice(0, 2), [data]);
 
   useEffect(() => {
     if (!featuredProducts || featuredProducts.length === 0) {
