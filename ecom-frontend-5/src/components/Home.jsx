@@ -5,16 +5,9 @@ import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
 
 const Home = () => {
-  const {
-    featuredProducts,
-    isFeaturedLoading,
-    loadFeaturedProducts,
-  } = useContext(AppContext);
+  const { data, isLoading } = useContext(AppContext);
   const [featuredCards, setFeaturedCards] = useState([]);
-
-  useEffect(() => {
-    loadFeaturedProducts();
-  }, [loadFeaturedProducts]);
+  const featuredProducts = data.slice(0, 2);
 
   useEffect(() => {
     if (!featuredProducts || featuredProducts.length === 0) {
@@ -112,7 +105,7 @@ const Home = () => {
           </Link>
         </div>
 
-        {isLoadingFeatured ? (
+        {isLoading && featuredCards.length === 0 ? (
           <div className="featured-placeholder">
             <h3>Loading featured products...</h3>
           </div>

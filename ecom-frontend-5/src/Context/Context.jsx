@@ -6,13 +6,10 @@ const AppContext = createContext({
   isError: "",
   isLoading: true,
   hasLoadedData: false,
-  featuredProducts: [],
-  isFeaturedLoading: false,
   cart: [],
   addToCart: (product) => {},
   removeFromCart: (productId) => {},
   refreshData:() =>{},
-  loadFeaturedProducts: () => {},
   updateStockQuantity: (productId, newQuantity) =>{}
   
 });
@@ -22,8 +19,6 @@ export const AppProvider = ({ children }) => {
   const [isError, setIsError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadedData, setHasLoadedData] = useState(false);
-  const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [isFeaturedLoading, setIsFeaturedLoading] = useState(false);
   const [cart, setCart] = useState(JSON.parse(localStorage.getItem('cart')) || []);
 
 
@@ -66,37 +61,20 @@ export const AppProvider = ({ children }) => {
     }
   }, []);
 
-  const loadFeaturedProducts = useCallback(async () => {
-    if (featuredProducts.length > 0 || isFeaturedLoading) {
-      return;
-    }
-
-    setIsFeaturedLoading(true);
-    try {
-      const sourceProducts = data.length > 0 ? data : (await axios.get("/products")).data;
-      setFeaturedProducts(sourceProducts.slice(0, 2));
-      if (sourceProducts.length > 0 && !hasLoadedData) {
-        setData(sourceProducts);
-        setHasLoadedData(true);
-        setIsLoading(false);
-      }
-    } catch (error) {
-      setIsError(error.message);
-    } finally {
-      setIsFeaturedLoading(false);
-    }
-  }, [data, featuredProducts.length, hasLoadedData, isFeaturedLoading]);
-
   const clearCart =() =>{
     setCart([]);
   }
+
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
   
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
   
   return (
-    <AppContext.Provider value={{ data, isError, isLoading, hasLoadedData, featuredProducts, isFeaturedLoading, cart, addToCart, removeFromCart,refreshData, loadFeaturedProducts, clearCart  }}>
+    <AppContext.Provider value={{ data, isError, isLoading, hasLoadedData, cart, addToCart, removeFromCart,refreshData, clearCart  }}>
       {children}
     </AppContext.Provider>
   );

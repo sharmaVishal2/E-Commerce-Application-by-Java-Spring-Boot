@@ -5,14 +5,8 @@ import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
 
 const Products = ({ selectedCategory }) => {
-  const { data, isError, isLoading, hasLoadedData, addToCart, refreshData } = useContext(AppContext);
+  const { data, isError, isLoading, addToCart } = useContext(AppContext);
   const [products, setProducts] = useState([]);
-
-  useEffect(() => {
-    if (!hasLoadedData) {
-      refreshData();
-    }
-  }, [hasLoadedData, refreshData]);
 
   useEffect(() => {
     if (!data || data.length === 0) {
