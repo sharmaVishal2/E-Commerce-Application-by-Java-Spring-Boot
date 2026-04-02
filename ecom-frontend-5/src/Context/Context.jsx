@@ -1,6 +1,8 @@
 import axios from "../axios";
 import { useState, useEffect, createContext, useCallback } from "react";
 
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const AppContext = createContext({
   data: [],
   isError: "",
@@ -50,14 +52,22 @@ export const AppProvider = ({ children }) => {
   const refreshData = useCallback(async () => {
     setIsLoading(true);
     setIsError("");
-    try {
-      const response = await axios.get("/products");
-      setData(response.data);
-      setHasLoadedData(true);
-    } catch (error) {
-      setIsError(error.message);
-    } finally {
-      setIsLoading(false);
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const response = await axios.get("/products");
+        setData(response.data);
+        setHasLoadedData(true);
+        setIsLoading(false);
+        return;
+      } catch (error) {
+        if (attempt === 2) {
+          setIsError(error.message);
+          setIsLoading(false);
+          return;
+        }
+
+        await wait(1200 * (attempt + 1));
+      }
     }
   }, []);
 
