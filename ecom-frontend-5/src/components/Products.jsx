@@ -9,10 +9,10 @@ const Products = ({ selectedCategory }) => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    if (data.length === 0 && !isLoading) {
+    if (data.length === 0) {
       refreshData();
     }
-  }, [data.length, isLoading, refreshData]);
+  }, [data.length, refreshData]);
 
   useEffect(() => {
     if (!data || data.length === 0) {
