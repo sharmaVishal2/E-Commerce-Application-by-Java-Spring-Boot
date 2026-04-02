@@ -5,20 +5,24 @@ import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
 
 const Products = ({ selectedCategory }) => {
-  const { data, isError, isLoading, addToCart, refreshData } = useContext(AppContext);
+  const { data, isError, isLoading, hasLoadedData, addToCart, refreshData } = useContext(AppContext);
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    if (data.length === 0) {
+    if (!hasLoadedData) {
       refreshData();
     }
-  }, [data.length, refreshData]);
+  }, [hasLoadedData, refreshData]);
 
   useEffect(() => {
     if (!data || data.length === 0) {
       setProducts([]);
       return;
     }
+
+    setProducts(
+      data.map((product) => ({ ...product, imageUrl: unplugged }))
+    );
 
     let isMounted = true;
     const objectUrls = [];

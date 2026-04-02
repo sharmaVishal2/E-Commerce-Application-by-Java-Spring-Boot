@@ -1,60 +1,66 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "../axios";
+import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
 
 const Home = () => {
-  const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
+  const {
+    featuredProducts,
+    isFeaturedLoading,
+    loadFeaturedProducts,
+  } = useContext(AppContext);
+  const [featuredCards, setFeaturedCards] = useState([]);
 
   useEffect(() => {
+    loadFeaturedProducts();
+  }, [loadFeaturedProducts]);
+
+  useEffect(() => {
+    if (!featuredProducts || featuredProducts.length === 0) {
+      setFeaturedCards([]);
+      return;
+    }
+
+    setFeaturedCards(
+      featuredProducts.map((product) => ({ ...product, imageUrl: unplugged }))
+    );
+
     let isMounted = true;
     const objectUrls = [];
 
-    const fetchFeaturedProducts = async () => {
-      try {
-        const response = await axios.get("/products");
-        const featured = response.data.slice(0, 2);
-        const featuredWithImages = await Promise.all(
-          featured.map(async (product) => {
-            if (!product.imageName) {
-              return { ...product, imageUrl: unplugged };
-            }
+    const hydrateFeaturedImages = async () => {
+      const updated = await Promise.all(
+        featuredProducts.map(async (product) => {
+          if (!product.imageName) {
+            return { ...product, imageUrl: unplugged };
+          }
 
-            try {
-              const imageResponse = await axios.get(`/product/${product.id}/image`, {
-                responseType: "blob",
-              });
-              const imageUrl = URL.createObjectURL(imageResponse.data);
-              objectUrls.push(imageUrl);
-              return { ...product, imageUrl };
-            } catch (error) {
-              return { ...product, imageUrl: unplugged };
-            }
-          })
-        );
+          try {
+            const imageResponse = await axios.get(`/product/${product.id}/image`, {
+              responseType: "blob",
+            });
+            const imageUrl = URL.createObjectURL(imageResponse.data);
+            objectUrls.push(imageUrl);
+            return { ...product, imageUrl };
+          } catch (error) {
+            return { ...product, imageUrl: unplugged };
+          }
+        })
+      );
 
-        if (isMounted) {
-          setFeaturedProducts(featuredWithImages);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setFeaturedProducts([]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingFeatured(false);
-        }
+      if (isMounted) {
+        setFeaturedCards(updated);
       }
     };
 
-    fetchFeaturedProducts();
+    hydrateFeaturedImages();
 
     return () => {
       isMounted = false;
       objectUrls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, []);
+  }, [featuredProducts]);
 
   return (
     <div className="landing-page">
@@ -110,13 +116,13 @@ const Home = () => {
           <div className="featured-placeholder">
             <h3>Loading featured products...</h3>
           </div>
-        ) : featuredProducts.length === 0 ? (
+        ) : featuredCards.length === 0 ? (
           <div className="featured-placeholder">
             <h3>Featured products are not available right now.</h3>
           </div>
         ) : (
           <div className="featured-grid">
-            {featuredProducts.map((product) => (
+            {featuredCards.map((product) => (
               <Link to={`/product/${product.id}`} className="featured-card" key={product.id}>
                 <img src={product.imageUrl} alt={product.name} className="featured-image" />
                 <div className="featured-body">
