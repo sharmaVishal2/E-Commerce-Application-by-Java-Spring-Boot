@@ -16,31 +16,33 @@ const Product = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let objectUrl = null;
+
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(
-          `/product/${id}`
-        );
+        const productRequest = axios.get(`/product/${id}`);
+        const imageRequest = axios.get(`/product/${id}/image`, {
+          responseType: "blob",
+        });
+
+        const response = await productRequest;
         setProduct(response.data);
-        if (response.data.imageName) {
-          fetchImage();
-        } else {
+
+        if (!response.data.imageName) {
           setImageUrl(unplugged);
           setIsImageLoading(false);
+          return;
+        }
+
+        try {
+          const imageResponse = await imageRequest;
+          objectUrl = URL.createObjectURL(imageResponse.data);
+          setImageUrl(objectUrl);
+        } catch (error) {
+          setImageUrl(unplugged);
         }
       } catch (error) {
         console.error("Error fetching product:", error);
-      }
-    };
-
-    const fetchImage = async () => {
-      try {
-        const response = await axios.get(
-          `/product/${id}/image`,
-          { responseType: "blob" }
-        );
-        setImageUrl(URL.createObjectURL(response.data));
-      } catch (error) {
         setImageUrl(unplugged);
       } finally {
         setIsImageLoading(false);
@@ -49,6 +51,12 @@ const Product = () => {
 
     setIsImageLoading(true);
     fetchProduct();
+
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
   }, [id]);
 
   const deleteProduct = async () => {
