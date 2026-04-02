@@ -7,6 +7,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const Home = lazy(() => import("./components/Home"));
+const Products = lazy(() => import("./components/Products"));
 const Cart = lazy(() => import("./components/Cart"));
 const AddProduct = lazy(() => import("./components/AddProduct"));
 const Product = lazy(() => import("./components/Product"));
@@ -34,7 +35,11 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<Home selectedCategory={selectedCategory} />}
+            element={<Home />}
+          />
+          <Route
+            path="/products"
+            element={<Products selectedCategory={selectedCategory} />}
           />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

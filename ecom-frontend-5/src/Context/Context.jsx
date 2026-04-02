@@ -1,5 +1,5 @@
 import axios from "../axios";
-import { useState, useEffect, createContext } from "react";
+import { useState, useEffect, createContext, useCallback } from "react";
 
 const AppContext = createContext({
   data: [],
@@ -45,7 +45,7 @@ export const AppProvider = ({ children }) => {
     console.log("CART",cart)
   };
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     setIsLoading(true);
     setIsError("");
     try {
@@ -56,16 +56,12 @@ export const AppProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const clearCart =() =>{
     setCart([]);
   }
   
-  useEffect(() => {
-    refreshData();
-  }, []);
-
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);

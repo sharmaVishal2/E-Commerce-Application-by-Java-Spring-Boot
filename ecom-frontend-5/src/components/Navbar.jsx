@@ -17,10 +17,6 @@ const Navbar = ({ onSelectCategory }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
     if (input.length < 1) {
       setShowSearchResults(false);
       setSearchResults([]);
@@ -42,21 +38,13 @@ const Navbar = ({ onSelectCategory }) => {
     return () => clearTimeout(timeoutId);
   }, [input]);
 
-  const fetchData = async () => {
-    try {
-      const response = await axios.get("/products");
-      setSearchResults(response.data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
-
   const handleChange = (value) => {
     setInput(value);
   };
 
   const handleCategorySelect = (category) => {
     onSelectCategory(category);
+    navigate("/products");
   };
   const toggleTheme = () => {
     const newTheme = theme === "dark-theme" ? "light-theme" : "dark-theme";
@@ -116,6 +104,11 @@ const Navbar = ({ onSelectCategory }) => {
                   </Link>
                 </li>
                 <li className="nav-item">
+                  <Link className="nav-link" to="/products">
+                    Products
+                  </Link>
+                </li>
+                <li className="nav-item">
                   {isAuthenticated ? (
                     <Link className="nav-link" to="/add_product">
                       Add Product
@@ -137,7 +130,7 @@ const Navbar = ({ onSelectCategory }) => {
                 <li className="nav-item dropdown">
                   <a
                     className="nav-link dropdown-toggle"
-                    href="/"
+                    href="/products"
                     role="button"
                     data-bs-toggle="dropdown"
                     aria-expanded="false"

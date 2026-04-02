@@ -49,7 +49,7 @@ const Product = () => {
       console.log("Product deleted successfully");
       alert("Product deleted successfully");
       refreshData();
-      navigate("/");
+      navigate("/products");
     } catch (error) {
       console.error("Error deleting product:", error);
     }

@@ -1,181 +1,136 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "../axios";
-import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
 
-const Home = ({ selectedCategory }) => {
-  const { data, isError, isLoading, addToCart } = useContext(AppContext);
-  const [products, setProducts] = useState([]);
+const Home = () => {
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
 
   useEffect(() => {
-    if (!data || data.length === 0) {
-      setProducts([]);
-      return;
-    }
-
     let isMounted = true;
     const objectUrls = [];
 
-    const fetchImagesAndUpdateProducts = async () => {
-      const updatedProducts = await Promise.all(
-        data.map(async (product) => {
-          if (!product.imageName) {
-            return { ...product, imageUrl: unplugged };
-          }
+    const fetchFeaturedProducts = async () => {
+      try {
+        const response = await axios.get("/products");
+        const featured = response.data.slice(0, 2);
+        const featuredWithImages = await Promise.all(
+          featured.map(async (product) => {
+            if (!product.imageName) {
+              return { ...product, imageUrl: unplugged };
+            }
 
-          try {
-            const response = await axios.get(
-              `/product/${product.id}/image`,
-              { responseType: "blob" }
-            );
-            const imageUrl = URL.createObjectURL(response.data);
-            objectUrls.push(imageUrl);
-            return { ...product, imageUrl };
-          } catch (error) {
-            return { ...product, imageUrl: unplugged };
-          }
-        })
-      );
+            try {
+              const imageResponse = await axios.get(`/product/${product.id}/image`, {
+                responseType: "blob",
+              });
+              const imageUrl = URL.createObjectURL(imageResponse.data);
+              objectUrls.push(imageUrl);
+              return { ...product, imageUrl };
+            } catch (error) {
+              return { ...product, imageUrl: unplugged };
+            }
+          })
+        );
 
-      if (isMounted) {
-        setProducts(updatedProducts);
+        if (isMounted) {
+          setFeaturedProducts(featuredWithImages);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setFeaturedProducts([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingFeatured(false);
+        }
       }
     };
 
-    fetchImagesAndUpdateProducts();
+    fetchFeaturedProducts();
 
     return () => {
       isMounted = false;
       objectUrls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [data]);
-
-  const filteredProducts = selectedCategory
-    ? products.filter((product) => product.category === selectedCategory)
-    : products;
-
-  if (isError) {
-    return (
-      <div className="home-status">
-        <img src={unplugged} alt="Error" style={{ width: "100px", height: "100px" }} />
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="home-status">
-        <h2 className="text-center">Loading products...</h2>
-      </div>
-    );
-  }
+  }, []);
 
   return (
-    <>
-      <div
-        className="grid"
-        style={{
-          marginTop: "64px",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "20px",
-          padding: "20px",
-        }}
-      >
-        {filteredProducts.length === 0 ? (
-          <div className="home-status home-status-inline">
-            <h2 className="text-center">No Products Available</h2>
+    <div className="landing-page">
+      <section className="hero-section">
+        <div className="hero-copy">
+          <p className="hero-tag">Vishal Storefront</p>
+          <h1>Shop practical tech and lifestyle picks without waiting on a heavy first load.</h1>
+          <p className="hero-description">
+            Browse a lightweight landing page first, then jump into the full catalog
+            once the backend is already warm. Faster first impression, same store.
+          </p>
+          <div className="hero-actions">
+            <Link to="/products" className="hero-button primary">
+              Browse Products
+            </Link>
+            <a
+              className="hero-button secondary"
+              href="https://sharmavishal2.github.io/Portfolio/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              View Portfolio
+            </a>
+          </div>
+        </div>
+        <div className="hero-panel">
+          <div className="hero-panel-card">
+            <span className="hero-panel-label">Why this layout</span>
+            <h3>Render wakes up in the background while users get a usable homepage.</h3>
+            <p>
+              Featured products below still trigger a small API call, so by the time
+              someone clicks into the catalog the backend is often already responsive.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="featured-section">
+        <div className="featured-header">
+          <div>
+            <p className="hero-tag">Featured Preview</p>
+            <h2>Two products loaded early to warm the backend</h2>
+          </div>
+          <Link to="/products" className="featured-link">
+            See full catalog
+          </Link>
+        </div>
+
+        {isLoadingFeatured ? (
+          <div className="featured-placeholder">
+            <h3>Loading featured products...</h3>
+          </div>
+        ) : featuredProducts.length === 0 ? (
+          <div className="featured-placeholder">
+            <h3>Featured products are not available right now.</h3>
           </div>
         ) : (
-          filteredProducts.map((product) => {
-            const { id, brand, name, price, productAvailable, imageUrl } =
-              product;
-            return (
-              <div
-                className="card mb-3"
-                style={{
-                  width: "250px",
-                  height: "360px",
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                  borderRadius: "10px",
-                  overflow: "hidden", 
-                  backgroundColor: productAvailable ? "#fff" : "#ccc",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent:'flex-start',
-                  alignItems:'stretch'
-                }}
-                key={id}
-              >
-                <Link
-                  to={`/product/${id}`}
-                  style={{ textDecoration: "none", color: "inherit" }}
-                >
-                  <img
-                    src={imageUrl}
-                    alt={name}
-                    style={{
-                      width: "100%",
-                      height: "150px", 
-                      objectFit: "cover",  
-                      padding: "5px",
-                      margin: "0",
-                      borderRadius: "10px 10px 10px 10px", 
-                    }}
-                  />
-                  <div
-                    className="card-body"
-                    style={{
-                      flexGrow: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      padding: "10px",
-                    }}
-                  >
-                    <div>
-                      <h5
-                        className="card-title"
-                        style={{ margin: "0 0 10px 0", fontSize: "1.2rem" }}
-                      >
-                        {name.toUpperCase()}
-                      </h5>
-                      <i
-                        className="card-brand"
-                        style={{ fontStyle: "italic", fontSize: "0.8rem" }}
-                      >
-                        {"~ " + brand}
-                      </i>
-                    </div>
-                    <hr className="hr-line" style={{ margin: "10px 0" }} />
-                    <div className="home-cart-price">
-                      <h5
-                        className="card-text"
-                        style={{ fontWeight: "600", fontSize: "1.1rem",marginBottom:'5px' }}
-                      >
-                        ${price}
-                      </h5>
-                    </div>
-                    <button
-                      className="btn-hover color-9"
-                      style={{margin:'10px 25px 0px '  }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        addToCart(product);
-                      }}
-                      disabled={!productAvailable}
-                    >
-                      {productAvailable ? "Add to Cart" : "Out of Stock"}
-                    </button> 
+          <div className="featured-grid">
+            {featuredProducts.map((product) => (
+              <Link to={`/product/${product.id}`} className="featured-card" key={product.id}>
+                <img src={product.imageUrl} alt={product.name} className="featured-image" />
+                <div className="featured-body">
+                  <p className="featured-category">{product.category}</p>
+                  <h3>{product.name}</h3>
+                  <p className="featured-brand">{product.brand}</p>
+                  <div className="featured-footer">
+                    <span>${product.price}</span>
+                    <span>{product.productAvailable ? "In stock" : "Out of stock"}</span>
                   </div>
-                </Link>
-              </div>
-            );
-          })
+                </div>
+              </Link>
+            ))}
+          </div>
         )}
-      </div>
-    </>
+      </section>
+    </div>
   );
 };
 
