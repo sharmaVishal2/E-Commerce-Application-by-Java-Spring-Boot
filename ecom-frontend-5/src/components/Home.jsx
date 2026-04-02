@@ -7,9 +7,11 @@ import unplugged from "../assets/unplugged.png";
 const Home = ({ selectedCategory }) => {
   const { data, isError, addToCart } = useContext(AppContext);
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (data && data.length > 0) {
+      setLoading(true);
       const fetchImagesAndUpdateProducts = async () => {
         const updatedProducts = await Promise.all(
           data.map(async (product) => {
@@ -35,11 +37,13 @@ const Home = ({ selectedCategory }) => {
           })
         );
         setProducts(updatedProducts);
+        setLoading(false);
       };
 
       fetchImagesAndUpdateProducts();
     } else {
       setProducts([]);
+      setLoading(false);
     }
   }, [data]);
 
@@ -54,6 +58,15 @@ const Home = ({ selectedCategory }) => {
       </h2>
     );
   }
+
+  if (loading) {
+    return (
+      <h2 className="text-center" style={{ padding: "10rem" }}>
+        Loading products...
+      </h2>
+    );
+  }
+
   return (
     <>
       <div
