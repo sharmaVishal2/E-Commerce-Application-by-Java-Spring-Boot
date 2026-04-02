@@ -12,6 +12,7 @@ const Product = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const [product, setProduct] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
+  const [isImageLoading, setIsImageLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,6 +26,7 @@ const Product = () => {
           fetchImage();
         } else {
           setImageUrl(unplugged);
+          setIsImageLoading(false);
         }
       } catch (error) {
         console.error("Error fetching product:", error);
@@ -32,13 +34,20 @@ const Product = () => {
     };
 
     const fetchImage = async () => {
-      const response = await axios.get(
-        `/product/${id}/image`,
-        { responseType: "blob" }
-      );
-      setImageUrl(URL.createObjectURL(response.data));
+      try {
+        const response = await axios.get(
+          `/product/${id}/image`,
+          { responseType: "blob" }
+        );
+        setImageUrl(URL.createObjectURL(response.data));
+      } catch (error) {
+        setImageUrl(unplugged);
+      } finally {
+        setIsImageLoading(false);
+      }
     };
 
+    setIsImageLoading(true);
     fetchProduct();
   }, [id]);
 
@@ -73,12 +82,20 @@ const Product = () => {
   return (
     <>
       <div className="containers" style={{ display: "flex" }}>
-        <img
-          className="left-column-img"
-          src={imageUrl}
-          alt={product.imageName}
-          style={{ width: "50%", height: "auto" }}
-        />
+        <div className="product-image-panel">
+          {isImageLoading ? (
+            <div className="product-image-placeholder">
+              <span>Loading image...</span>
+            </div>
+          ) : (
+            <img
+              className="left-column-img"
+              src={imageUrl}
+              alt={product.imageName}
+              style={{ width: "50%", height: "auto" }}
+            />
+          )}
+        </div>
 
         <div className="right-column" style={{ width: "50%" }}>
           <div className="product-description">

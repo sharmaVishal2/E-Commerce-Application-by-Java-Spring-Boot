@@ -505,6 +505,40 @@ padding-top: 100px;
   padding-top: 6rem;
   margin: 20px;
 }
+.product-image-panel {
+  width: 50%;
+  min-height: 32rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-image-placeholder {
+  width: min(100%, 30rem);
+  min-height: 24rem;
+  margin-top: 6rem;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0.08) 8%, rgba(255, 255, 255, 0.18) 18%, rgba(255, 255, 255, 0.08) 33%);
+  background-size: 200% 100%;
+  animation: product-image-shimmer 1.3s linear infinite;
+}
+
+.product-image-placeholder span {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+@keyframes product-image-shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+
 .left-column {
   width: 40%;
   position: relative;
