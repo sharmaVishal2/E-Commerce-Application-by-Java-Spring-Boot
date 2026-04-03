@@ -18,7 +18,12 @@ export const AuthProvider = ({ children }) => {
   const fetchCurrentUser = async () => {
     try {
       const response = await axios.get("/auth/me");
-      setUser(response.data);
+      if (response.data?.authenticated) {
+        setUser(response.data);
+      } else {
+        localStorage.removeItem("authToken");
+        setUser(null);
+      }
     } catch (error) {
       localStorage.removeItem("authToken");
       setUser(null);

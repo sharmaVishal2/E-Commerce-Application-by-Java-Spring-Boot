@@ -47,7 +47,14 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> me(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            return ResponseEntity.ok(Map.of(
+                    "authenticated", false
+            ));
+        }
+
         return ResponseEntity.ok(Map.of(
+                "authenticated", true,
                 "username", authentication.getName(),
                 "roles", authentication.getAuthorities().stream()
                         .map(authority -> authority.getAuthority())

@@ -41,11 +41,11 @@ public class SecurityConfig {
                                 "/api/products",
                                 "/api/product/*",
                                 "/api/product/*/image",
-                                "/api/products/search")
+                                "/api/products/search",
+                                "/api/auth/me")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        .requestMatchers("/api/auth/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/product").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/product/*").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/product/*").authenticated()
