@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../axios";
+import unplugged from "../assets/unplugged.png";
 
 const UpdateProduct = () => {
   const { id } = useParams();
   const [product, setProduct] = useState({});
   const [image, setImage] = useState();
+  const [errorMessage, setErrorMessage] = useState("");
   const [updateProduct, setUpdateProduct] = useState({
     id: null,
     name: "",
@@ -59,6 +61,7 @@ const UpdateProduct = () => {
  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage("");
     const updatedProduct = new FormData();
     if (image) {
       updatedProduct.append("imageFile", image);
@@ -76,7 +79,13 @@ const UpdateProduct = () => {
       })
       .catch((error) => {
         console.error("Error updating product:", error);
-        alert("Failed to update product. Please try again.");
+        const message =
+          error.response?.data?.message ||
+          error.response?.data ||
+          error.message ||
+          "Failed to update product. Please try again.";
+        setErrorMessage(String(message));
+        alert(`Failed to update product: ${message}`);
       });
   };
  
@@ -194,7 +203,7 @@ const UpdateProduct = () => {
               <h6>Image</h6>
             </label>
             <img
-              src={image ? URL.createObjectURL(image) : "Image unavailable"}
+              src={image ? URL.createObjectURL(image) : unplugged}
               alt={product.imageName}
               style={{
                 width: "100%",
@@ -230,6 +239,7 @@ const UpdateProduct = () => {
           </div>
 
           <div className="col-12">
+            {errorMessage ? <div className="alert alert-danger">{errorMessage}</div> : null}
             <button type="submit" className="btn btn-primary">
               Submit
             </button>
