@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "../axios";
 import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
+import { getCachedImageUrl, setCachedImageUrl } from "../utils/imageCache";
 
 const Products = ({ selectedCategory }) => {
   const { data, isError, isLoading, addToCart } = useContext(AppContext);
@@ -19,7 +20,6 @@ const Products = ({ selectedCategory }) => {
     );
 
     let isMounted = true;
-    const objectUrls = [];
 
     const fetchImagesAndUpdateProducts = async () => {
       const updatedProducts = await Promise.all(
@@ -28,13 +28,18 @@ const Products = ({ selectedCategory }) => {
             return { ...product, imageUrl: unplugged };
           }
 
+          const cachedImageUrl = getCachedImageUrl(product.id);
+          if (cachedImageUrl) {
+            return { ...product, imageUrl: cachedImageUrl };
+          }
+
           try {
             const response = await axios.get(`/product/${product.id}/image`, {
               skipAuth: true,
               responseType: "blob",
             });
             const imageUrl = URL.createObjectURL(response.data);
-            objectUrls.push(imageUrl);
+            setCachedImageUrl(product.id, imageUrl);
             return { ...product, imageUrl };
           } catch (error) {
             return { ...product, imageUrl: unplugged };
@@ -51,7 +56,6 @@ const Products = ({ selectedCategory }) => {
 
     return () => {
       isMounted = false;
-      objectUrls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [data]);
 

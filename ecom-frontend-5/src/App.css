@@ -84,6 +84,18 @@
   border-color: rgba(255, 255, 255, 0.08);
 }
 
+.dark-theme .hero-copy h1,
+.dark-theme .hero-description,
+.dark-theme .hero-panel-card h3,
+.dark-theme .hero-panel-card p,
+.dark-theme .featured-header h2,
+.dark-theme .featured-body h3,
+.dark-theme .featured-brand,
+.dark-theme .featured-footer span,
+.dark-theme .featured-link {
+  color: #f3f5f7 !important;
+}
+
 .hero-copy {
   padding: 40px;
 }
@@ -136,6 +148,7 @@
 
 .hero-button.secondary {
   border: 1px solid rgba(0, 0, 0, 0.18);
+  color: #111;
 }
 
 .dark-theme .hero-button.primary {
@@ -145,6 +158,7 @@
 
 .dark-theme .hero-button.secondary {
   border-color: rgba(255, 255, 255, 0.18);
+  color: #f3f5f7;
 }
 
 .hero-panel {
@@ -213,6 +227,10 @@
   text-decoration: none;
   background: var(--card-bg-clr);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.dark-theme .featured-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .featured-image {
@@ -370,7 +388,11 @@ a {
 .text-center{
   color: var(--navbar_text) !important;
 }
-.navbar a,span,li,i,button {
+.navbar a,
+.navbar span,
+.navbar li,
+.navbar i,
+.navbar button {
   color: var(--navbar_text) !important;
 }
 .navbar a:hover {

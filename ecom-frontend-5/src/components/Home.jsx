@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "../axios";
 import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
+import { getCachedImageUrl, setCachedImageUrl } from "../utils/imageCache";
 
   const Home = () => {
   const { data, isLoading } = useContext(AppContext);
@@ -20,7 +21,6 @@ import unplugged from "../assets/unplugged.png";
     );
 
     let isMounted = true;
-    const objectUrls = [];
 
     const hydrateFeaturedImages = async () => {
       const updated = await Promise.all(
@@ -29,13 +29,18 @@ import unplugged from "../assets/unplugged.png";
             return { ...product, imageUrl: unplugged };
           }
 
+          const cachedImageUrl = getCachedImageUrl(product.id);
+          if (cachedImageUrl) {
+            return { ...product, imageUrl: cachedImageUrl };
+          }
+
           try {
             const imageResponse = await axios.get(`/product/${product.id}/image`, {
               skipAuth: true,
               responseType: "blob",
             });
             const imageUrl = URL.createObjectURL(imageResponse.data);
-            objectUrls.push(imageUrl);
+            setCachedImageUrl(product.id, imageUrl);
             return { ...product, imageUrl };
           } catch (error) {
             return { ...product, imageUrl: unplugged };
@@ -52,7 +57,6 @@ import unplugged from "../assets/unplugged.png";
 
     return () => {
       isMounted = false;
-      objectUrls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [featuredProducts]);
 
