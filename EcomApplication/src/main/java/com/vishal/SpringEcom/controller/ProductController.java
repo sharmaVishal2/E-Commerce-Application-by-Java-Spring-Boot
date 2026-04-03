@@ -9,14 +9,18 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
 @CrossOrigin
 public class ProductController {
+    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
     @Autowired
     private ProductService productService;
@@ -56,12 +60,17 @@ public class ProductController {
             @RequestPart("product") Product product,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile
     ){
-        Product savedProduct = null;
         try {
-            savedProduct = productService.addOrUpdateProduct(product, imageFile);
+            Product savedProduct = productService.addOrUpdateProduct(product, imageFile);
             return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
         } catch (IOException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            logger.error("Failed to add product {}", product.getName(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Unexpected error adding product {}", product.getName(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
         }
     }
 
@@ -77,7 +86,14 @@ public class ProductController {
             return new ResponseEntity<>("Updated", HttpStatus.OK);
         }
         catch (IOException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            logger.error("Failed to update product {}", id, e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+        catch (Exception e){
+            logger.error("Unexpected error updating product {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
         }
     }
 
