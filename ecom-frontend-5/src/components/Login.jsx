@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "../Context/AuthContext";
 
 const Login = () => {
@@ -9,8 +9,6 @@ const Login = () => {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const oauthError = searchParams.get("error");
 
   if (authReady && isAuthenticated) {
     const destination = location.state?.from?.pathname || "/";
@@ -76,15 +74,6 @@ const Login = () => {
               autoComplete="current-password"
             />
           </div>
-          {oauthError ? (
-            <div className="alert alert-danger">
-              {oauthError === "oauth_token_missing"
-                ? "OAuth login did not return a token."
-                : oauthError === "oauth_login_failed"
-                  ? "OAuth login failed after redirect."
-                  : `OAuth error: ${oauthError}`}
-            </div>
-          ) : null}
           {error ? <div className="alert alert-danger">{error}</div> : null}
           <button className="btn btn-primary" type="submit" disabled={submitting}>
             {submitting ? "Signing in..." : "Sign In"}

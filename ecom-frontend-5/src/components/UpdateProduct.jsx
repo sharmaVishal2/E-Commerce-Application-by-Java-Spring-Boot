@@ -3,33 +3,10 @@ import { useParams } from "react-router-dom";
 import axios from "../axios";
 import unplugged from "../assets/unplugged.png";
 
-const getErrorMessage = (error) => {
-  const responseData = error.response?.data;
-
-  if (typeof responseData === "string") {
-    return responseData;
-  }
-
-  if (responseData && typeof responseData === "object") {
-    if (typeof responseData.message === "string") {
-      return responseData.message;
-    }
-
-    try {
-      return JSON.stringify(responseData);
-    } catch {
-      return "Unexpected server error.";
-    }
-  }
-
-  return error.message || "Failed to update product. Please try again.";
-};
-
 const UpdateProduct = () => {
   const { id } = useParams();
   const [product, setProduct] = useState({});
   const [image, setImage] = useState();
-  const [errorMessage, setErrorMessage] = useState("");
   const [updateProduct, setUpdateProduct] = useState({
     id: null,
     name: "",
@@ -83,7 +60,6 @@ const UpdateProduct = () => {
  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage("");
     const updatedProduct = new FormData();
     if (image) {
       updatedProduct.append("imageFile", image);
@@ -101,9 +77,7 @@ const UpdateProduct = () => {
       })
       .catch((error) => {
         console.error("Error updating product:", error);
-        const message = getErrorMessage(error);
-        setErrorMessage(message);
-        alert(`Failed to update product: ${message}`);
+        alert("Failed to update product. Please try again.");
       });
   };
  
@@ -257,7 +231,6 @@ const UpdateProduct = () => {
           </div>
 
           <div className="col-12">
-            {errorMessage ? <div className="alert alert-danger">{errorMessage}</div> : null}
             <button type="submit" className="btn btn-primary">
               Submit
             </button>
