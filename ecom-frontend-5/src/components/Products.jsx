@@ -117,6 +117,10 @@ const Products = ({ selectedCategory }) => {
                 <img
                   src={imageUrl}
                   alt={name}
+                  onError={(event) => {
+                    event.currentTarget.onerror = null;
+                    event.currentTarget.src = unplugged;
+                  }}
                   style={{
                     width: "100%",
                     height: "150px",

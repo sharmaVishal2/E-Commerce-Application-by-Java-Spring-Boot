@@ -101,6 +101,10 @@ const Product = () => {
               className="left-column-img"
               src={imageUrl}
               alt={product.imageName}
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = unplugged;
+              }}
               style={{ width: "50%", height: "auto" }}
             />
           )}

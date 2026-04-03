@@ -118,7 +118,15 @@ import unplugged from "../assets/unplugged.png";
           <div className="featured-grid">
             {featuredCards.map((product) => (
               <Link to={`/product/${product.id}`} className="featured-card" key={product.id}>
-                <img src={product.imageUrl} alt={product.name} className="featured-image" />
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="featured-image"
+                  onError={(event) => {
+                    event.currentTarget.onerror = null;
+                    event.currentTarget.src = unplugged;
+                  }}
+                />
                 <div className="featured-body">
                   <p className="featured-category">{product.category}</p>
                   <h3>{product.name}</h3>

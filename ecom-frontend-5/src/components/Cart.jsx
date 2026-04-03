@@ -406,6 +406,10 @@ const Cart = () => {
                       src={item.imageUrl}
                       alt={item.name}
                       className="cart-item-image"
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = unplugged;
+                      }}
                     />
                   </div>
                   <div className="description">
