@@ -1,11 +1,12 @@
 import { createContext, useEffect, useState } from "react";
-import axios from "../axios";
+import axios, { AUTH_BASE_URL } from "../axios";
 
 const AuthContext = createContext({
   isAuthenticated: false,
   user: null,
   login: async () => {},
   register: async () => {},
+  socialLogin: () => {},
   logout: () => {},
   authReady: false,
 });
@@ -27,11 +28,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (localStorage.getItem("authToken")) {
-      fetchCurrentUser();
-    } else {
-      setAuthReady(true);
-    }
+    fetchCurrentUser();
   }, []);
 
   const login = async (username, password) => {
@@ -54,13 +51,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    axios.post(`${AUTH_BASE_URL}/logout`, null, { skipAuth: true }).catch(() => {});
     localStorage.removeItem("authToken");
     setUser(null);
   };
 
   const register = async (username, password) => {
     try {
-      await axios.post("/auth/register", { username, password });
+      await axios.post("/auth/register", { username, password }, { skipAuth: true });
       return await login(username, password);
     } catch (error) {
       return {
@@ -70,6 +68,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const socialLogin = (provider) => {
+    window.location.assign(`${AUTH_BASE_URL}/oauth2/authorization/${provider}`);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -77,6 +79,7 @@ export const AuthProvider = ({ children }) => {
         user,
         login,
         register,
+        socialLogin,
         logout,
         authReady,
       }}

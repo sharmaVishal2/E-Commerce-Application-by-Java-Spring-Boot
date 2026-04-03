@@ -283,7 +283,7 @@ const Cart = () => {
             try {
               const response = await axios.get(
                 `/product/${item.id}/image`,
-                { responseType: "blob" }
+                { skipAuth: true, responseType: "blob" }
               );
               const imageFile = await converUrlToFile(response.data, item.imageName);
               const imageUrl = URL.createObjectURL(response.data);

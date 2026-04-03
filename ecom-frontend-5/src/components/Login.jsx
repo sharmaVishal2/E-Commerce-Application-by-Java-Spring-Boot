@@ -3,7 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "../Context/AuthContext";
 
 const Login = () => {
-  const { isAuthenticated, login, authReady } = useContext(AuthContext);
+  const { isAuthenticated, login, socialLogin, authReady } = useContext(AuthContext);
   const [credentials, setCredentials] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -78,6 +78,25 @@ const Login = () => {
           <button className="btn btn-primary" type="submit" disabled={submitting}>
             {submitting ? "Signing in..." : "Sign In"}
           </button>
+          <div className="mt-4">
+            <p className="text-muted mb-2">Or continue with</p>
+            <div className="d-flex gap-2 flex-wrap">
+              <button
+                className="btn btn-outline-dark"
+                type="button"
+                onClick={() => socialLogin("google")}
+              >
+                Sign in with Google
+              </button>
+              <button
+                className="btn btn-outline-dark"
+                type="button"
+                onClick={() => socialLogin("github")}
+              >
+                Sign in with GitHub
+              </button>
+            </div>
+          </div>
           <p className="mt-3 mb-0">
             New here? <Link to="/register">Create an account</Link>
           </p>

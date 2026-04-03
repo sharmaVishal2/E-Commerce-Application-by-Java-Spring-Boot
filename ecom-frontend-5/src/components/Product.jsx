@@ -20,8 +20,9 @@ const Product = () => {
 
     const fetchProduct = async () => {
       try {
-        const productRequest = axios.get(`/product/${id}`);
+        const productRequest = axios.get(`/product/${id}`, { skipAuth: true });
         const imageRequest = axios.get(`/product/${id}/image`, {
+          skipAuth: true,
           responseType: "blob",
         });
 

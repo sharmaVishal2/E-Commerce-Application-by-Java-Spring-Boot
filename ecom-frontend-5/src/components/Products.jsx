@@ -30,6 +30,7 @@ const Products = ({ selectedCategory }) => {
 
           try {
             const response = await axios.get(`/product/${product.id}/image`, {
+              skipAuth: true,
               responseType: "blob",
             });
             const imageUrl = URL.createObjectURL(response.data);

@@ -27,7 +27,9 @@ const Navbar = ({ onSelectCategory }) => {
     const timeoutId = setTimeout(async () => {
       setShowSearchResults(true);
       try {
-        const response = await axios.get(`/products/search?keyword=${input}`);
+        const response = await axios.get(`/products/search?keyword=${input}`, {
+          skipAuth: true,
+        });
         setSearchResults(response.data);
         setNoResults(response.data.length === 0);
       } catch (error) {

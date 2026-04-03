@@ -54,7 +54,7 @@ export const AppProvider = ({ children }) => {
     setIsError("");
     for (let attempt = 0; attempt < 3; attempt += 1) {
       try {
-        const response = await axios.get("/products");
+        const response = await axios.get("/products", { skipAuth: true });
         setData(response.data);
         setHasLoadedData(true);
         setIsLoading(false);

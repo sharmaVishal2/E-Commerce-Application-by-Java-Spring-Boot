@@ -31,6 +31,7 @@ import unplugged from "../assets/unplugged.png";
 
           try {
             const imageResponse = await axios.get(`/product/${product.id}/image`, {
+              skipAuth: true,
               responseType: "blob",
             });
             const imageUrl = URL.createObjectURL(imageResponse.data);

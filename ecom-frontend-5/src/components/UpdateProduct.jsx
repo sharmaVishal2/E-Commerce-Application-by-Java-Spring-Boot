@@ -21,7 +21,7 @@ const UpdateProduct = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`/product/${id}`);
+        const response = await axios.get(`/product/${id}`, { skipAuth: true });
 
         setProduct(response.data);
         setUpdateProduct({
@@ -33,6 +33,7 @@ const UpdateProduct = () => {
 
         try {
           const responseImage = await axios.get(`/product/${id}/image`, {
+            skipAuth: true,
             responseType: "blob",
           });
           const imageFile = await converUrlToFile(

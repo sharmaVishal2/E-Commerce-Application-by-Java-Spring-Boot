@@ -31,4 +31,11 @@ public class AppUser {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
+    @Column
+    private String providerUserId;
 }
