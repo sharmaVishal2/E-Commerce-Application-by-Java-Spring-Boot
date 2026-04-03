@@ -17,15 +17,13 @@ export const AuthProvider = ({ children }) => {
 
   const fetchCurrentUser = async () => {
     try {
-      const response = await axios.get("/auth/me");
+      const response = await axios.get("/auth/me", { skipAuth: true });
       if (response.data?.authenticated) {
         setUser(response.data);
       } else {
-        localStorage.removeItem("authToken");
         setUser(null);
       }
     } catch (error) {
-      localStorage.removeItem("authToken");
       setUser(null);
     } finally {
       setAuthReady(true);
@@ -37,14 +35,11 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (username, password) => {
-    const token = window.btoa(`${username}:${password}`);
-    localStorage.setItem("authToken", token);
     try {
-      const response = await axios.get("/auth/me");
+      const response = await axios.post("/auth/login", { username, password }, { skipAuth: true });
       setUser(response.data);
       return { success: true };
     } catch (error) {
-      localStorage.removeItem("authToken");
       setUser(null);
       return {
         success: false,
@@ -57,7 +52,6 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     axios.post(`${AUTH_BASE_URL}/logout`, null, { skipAuth: true }).catch(() => {});
-    localStorage.removeItem("authToken");
     setUser(null);
   };
 
