@@ -3,14 +3,12 @@ package com.vishal.springecom.controller;
 import com.vishal.springecom.dto.LoginRequest;
 import com.vishal.springecom.dto.RegisterRequest;
 import com.vishal.springecom.model.AppUser;
+import com.vishal.springecom.security.TokenService;
 import com.vishal.springecom.service.AppUserService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,10 +23,12 @@ import java.util.Map;
 public class AuthController {
     private final AppUserService appUserService;
     private final AuthenticationManager authenticationManager;
+    private final TokenService tokenService;
 
-    public AuthController(AppUserService appUserService, AuthenticationManager authenticationManager) {
+    public AuthController(AppUserService appUserService, AuthenticationManager authenticationManager, TokenService tokenService) {
         this.appUserService = appUserService;
         this.authenticationManager = authenticationManager;
+        this.tokenService = tokenService;
     }
 
     @PostMapping("/register")
@@ -54,7 +54,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         if (request.username() == null || request.username().isBlank()
                 || request.password() == null || request.password().isBlank()) {
             return ResponseEntity.badRequest().body(Map.of(
@@ -66,14 +66,11 @@ public class AuthController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.username().trim(), request.password())
             );
-
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(authentication);
-            SecurityContextHolder.setContext(context);
-            httpServletRequest.getSession(true).setAttribute("SPRING_SECURITY_CONTEXT", context);
+            String token = tokenService.createToken(authentication.getName(), authentication.getAuthorities());
 
             return ResponseEntity.ok(Map.of(
                     "authenticated", true,
+                    "token", token,
                     "username", authentication.getName(),
                     "roles", authentication.getAuthorities().stream()
                             .map(authority -> authority.getAuthority())

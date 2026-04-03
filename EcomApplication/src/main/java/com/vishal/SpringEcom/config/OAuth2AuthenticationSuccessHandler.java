@@ -1,6 +1,7 @@
 package com.vishal.springecom.config;
 
 import com.vishal.springecom.model.AuthProvider;
+import com.vishal.springecom.security.TokenService;
 import com.vishal.springecom.service.AppUserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,12 +18,14 @@ import java.io.IOException;
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final AppUserService appUserService;
+    private final TokenService tokenService;
 
     @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
 
-    public OAuth2AuthenticationSuccessHandler(AppUserService appUserService) {
+    public OAuth2AuthenticationSuccessHandler(AppUserService appUserService, TokenService tokenService) {
         this.appUserService = appUserService;
+        this.tokenService = tokenService;
     }
 
     @Override
@@ -42,9 +45,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String providerUserId = oauthUser.getName();
         String username = resolveUsername(authProvider, oauthUser);
 
-        appUserService.registerOrUpdateOAuthUser(authProvider, providerUserId, username);
+        var user = appUserService.registerOrUpdateOAuthUser(authProvider, providerUserId, username);
+        String token = tokenService.createToken(user.getUsername(), authentication.getAuthorities());
 
-        getRedirectStrategy().sendRedirect(request, response, frontendUrl);
+        getRedirectStrategy().sendRedirect(request, response, frontendUrl + "/oauth/callback?token=" + token);
     }
 
     private String resolveUsername(AuthProvider authProvider, OAuth2User oauthUser) {

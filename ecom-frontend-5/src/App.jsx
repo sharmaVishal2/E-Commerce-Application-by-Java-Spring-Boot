@@ -14,6 +14,7 @@ const Product = lazy(() => import("./components/Product"));
 const UpdateProduct = lazy(() => import("./components/UpdateProduct"));
 const Login = lazy(() => import("./components/Login"));
 const Register = lazy(() => import("./components/Register"));
+const OAuthCallback = lazy(() => import("./components/OAuthCallback"));
 
 function App() {
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -43,6 +44,7 @@ function App() {
           />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/oauth/callback" element={<OAuthCallback />} />
           <Route
             path="/add_product"
             element={

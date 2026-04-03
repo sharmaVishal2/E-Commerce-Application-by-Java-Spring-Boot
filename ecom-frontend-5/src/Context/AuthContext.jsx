@@ -31,15 +31,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    fetchCurrentUser();
+    if (localStorage.getItem("authToken")) {
+      fetchCurrentUser();
+    } else {
+      setAuthReady(true);
+    }
   }, []);
 
   const login = async (username, password) => {
     try {
       const response = await axios.post("/auth/login", { username, password }, { skipAuth: true });
+      localStorage.setItem("authToken", response.data.token);
       setUser(response.data);
       return { success: true };
     } catch (error) {
+      localStorage.removeItem("authToken");
       setUser(null);
       return {
         success: false,
@@ -51,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    axios.post(`${AUTH_BASE_URL}/logout`, null, { skipAuth: true }).catch(() => {});
+    localStorage.removeItem("authToken");
     setUser(null);
   };
 
@@ -71,6 +77,11 @@ export const AuthProvider = ({ children }) => {
     window.location.assign(`${AUTH_BASE_URL}/oauth2/authorization/${provider}`);
   };
 
+  const completeOAuthLogin = async (token) => {
+    localStorage.setItem("authToken", token);
+    await fetchCurrentUser();
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -79,6 +90,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         socialLogin,
+        completeOAuthLogin,
         logout,
         authReady,
       }}
