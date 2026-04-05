@@ -9,6 +9,13 @@ const Products = ({ selectedCategory }) => {
   const { data, isError, isLoading, addToCart } = useContext(AppContext);
   const [products, setProducts] = useState([]);
 
+  const wakeupNote = (
+    <div className="products-wakeup-note">
+      First product fetch can take a few seconds if the backend is waking up
+      after being idle.
+    </div>
+  );
+
   useEffect(() => {
     if (!data || data.length === 0) {
       setProducts([]);
@@ -73,18 +80,18 @@ const Products = ({ selectedCategory }) => {
 
   if (isLoading) {
     return (
-      <div className="home-status">
-        <h2 className="text-center">Loading products...</h2>
+      <div className="products-page">
+        {wakeupNote}
+        <div className="home-status home-status-loading">
+          <h2 className="text-center">Loading products...</h2>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="products-page">
-      <div className="products-wakeup-note">
-        First product fetch can take a few seconds if the backend is waking up
-        after being idle.
-      </div>
+      {wakeupNote}
       <div
         className="grid"
         style={{

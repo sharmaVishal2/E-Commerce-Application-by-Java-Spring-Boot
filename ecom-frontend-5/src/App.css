@@ -501,6 +501,11 @@ border-radius: .5rem;
   width: 100%;
   border-radius: 0.5rem;
 }
+
+.home-status-loading {
+  min-height: calc(100vh - 180px);
+  margin-top: 24px;
+}
 .container{
 margin-top: 11%;
 max-width: 120rem;
