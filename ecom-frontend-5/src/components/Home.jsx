@@ -95,6 +95,10 @@ import { getCachedImageUrl, setCachedImageUrl } from "../utils/imageCache";
               visitors something useful to see immediately and also helps wake the
               backend before they open the full catalog.
             </p>
+            <p className="hero-note">
+              First product fetch can still take a few seconds if the backend is waking
+              up after being idle.
+            </p>
           </div>
         </div>
       </section>
