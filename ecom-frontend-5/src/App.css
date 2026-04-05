@@ -292,6 +292,29 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+.products-page {
+  margin-top: 64px;
+  padding-top: 20px;
+}
+
+.products-wakeup-note {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: rgba(13, 110, 253, 0.08);
+  border: 1px solid rgba(13, 110, 253, 0.12);
+  color: rgba(17, 17, 17, 0.78);
+  font-size: 0.96rem;
+  line-height: 1.6;
+}
+
+.dark-theme .products-wakeup-note {
+  background: rgba(13, 110, 253, 0.14);
+  border-color: rgba(125, 175, 255, 0.18);
+  color: rgba(243, 245, 247, 0.84);
+}
+
 /* <.............................................NAVBAR DROPDOWN......................................> */
 .navbar-brand {
   font-size: 1.5rem;

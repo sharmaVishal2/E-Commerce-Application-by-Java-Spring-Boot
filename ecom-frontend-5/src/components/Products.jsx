@@ -80,114 +80,120 @@ const Products = ({ selectedCategory }) => {
   }
 
   return (
-    <div
-      className="grid"
-      style={{
-        marginTop: "64px",
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-        gap: "20px",
-        padding: "20px",
-      }}
-    >
-      {filteredProducts.length === 0 ? (
-        <div className="home-status home-status-inline">
-          <h2 className="text-center">No Products Available</h2>
-        </div>
-      ) : (
-        filteredProducts.map((product) => {
-          const { id, brand, name, price, productAvailable, imageUrl } = product;
-          return (
-            <div
-              className="card mb-3"
-              style={{
-                width: "250px",
-                height: "360px",
-                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                borderRadius: "10px",
-                overflow: "hidden",
-                backgroundColor: productAvailable ? "#fff" : "#ccc",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-start",
-                alignItems: "stretch",
-              }}
-              key={id}
-            >
-              <Link
-                to={`/product/${id}`}
-                style={{ textDecoration: "none", color: "inherit" }}
+    <div className="products-page">
+      <div className="products-wakeup-note">
+        First product fetch can take a few seconds if the backend is waking up
+        after being idle.
+      </div>
+      <div
+        className="grid"
+        style={{
+          marginTop: "24px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gap: "20px",
+          padding: "0 20px 20px",
+        }}
+      >
+        {filteredProducts.length === 0 ? (
+          <div className="home-status home-status-inline">
+            <h2 className="text-center">No Products Available</h2>
+          </div>
+        ) : (
+          filteredProducts.map((product) => {
+            const { id, brand, name, price, productAvailable, imageUrl } = product;
+            return (
+              <div
+                className="card mb-3"
+                style={{
+                  width: "250px",
+                  height: "360px",
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                  borderRadius: "10px",
+                  overflow: "hidden",
+                  backgroundColor: productAvailable ? "#fff" : "#ccc",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "flex-start",
+                  alignItems: "stretch",
+                }}
+                key={id}
               >
-                <img
-                  src={imageUrl}
-                  alt={name}
-                  onError={(event) => {
-                    event.currentTarget.onerror = null;
-                    event.currentTarget.src = unplugged;
-                  }}
-                  style={{
-                    width: "100%",
-                    height: "150px",
-                    objectFit: "cover",
-                    padding: "5px",
-                    margin: "0",
-                    borderRadius: "10px",
-                  }}
-                />
-                <div
-                  className="card-body"
-                  style={{
-                    flexGrow: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    padding: "10px",
-                  }}
+                <Link
+                  to={`/product/${id}`}
+                  style={{ textDecoration: "none", color: "inherit" }}
                 >
-                  <div>
-                    <h5
-                      className="card-title"
-                      style={{ margin: "0 0 10px 0", fontSize: "1.2rem" }}
-                    >
-                      {name.toUpperCase()}
-                    </h5>
-                    <i
-                      className="card-brand"
-                      style={{ fontStyle: "italic", fontSize: "0.8rem" }}
-                    >
-                      {"~ " + brand}
-                    </i>
-                  </div>
-                  <hr className="hr-line" style={{ margin: "10px 0" }} />
-                  <div className="home-cart-price">
-                    <h5
-                      className="card-text"
-                      style={{
-                        fontWeight: "600",
-                        fontSize: "1.1rem",
-                        marginBottom: "5px",
-                      }}
-                    >
-                      ${price}
-                    </h5>
-                  </div>
-                  <button
-                    className="btn-hover color-9"
-                    style={{ margin: "10px 25px 0px " }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      addToCart(product);
+                  <img
+                    src={imageUrl}
+                    alt={name}
+                    onError={(event) => {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = unplugged;
                     }}
-                    disabled={!productAvailable}
+                    style={{
+                      width: "100%",
+                      height: "150px",
+                      objectFit: "cover",
+                      padding: "5px",
+                      margin: "0",
+                      borderRadius: "10px",
+                    }}
+                  />
+                  <div
+                    className="card-body"
+                    style={{
+                      flexGrow: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      padding: "10px",
+                    }}
                   >
-                    {productAvailable ? "Add to Cart" : "Out of Stock"}
-                  </button>
-                </div>
-              </Link>
-            </div>
-          );
-        })
-      )}
+                    <div>
+                      <h5
+                        className="card-title"
+                        style={{ margin: "0 0 10px 0", fontSize: "1.2rem" }}
+                      >
+                        {name.toUpperCase()}
+                      </h5>
+                      <i
+                        className="card-brand"
+                        style={{ fontStyle: "italic", fontSize: "0.8rem" }}
+                      >
+                        {"~ " + brand}
+                      </i>
+                    </div>
+                    <hr className="hr-line" style={{ margin: "10px 0" }} />
+                    <div className="home-cart-price">
+                      <h5
+                        className="card-text"
+                        style={{
+                          fontWeight: "600",
+                          fontSize: "1.1rem",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        ${price}
+                      </h5>
+                    </div>
+                    <button
+                      className="btn-hover color-9"
+                      style={{ margin: "10px 25px 0px " }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        addToCart(product);
+                      }}
+                      disabled={!productAvailable}
+                    >
+                      {productAvailable ? "Add to Cart" : "Out of Stock"}
+                    </button>
+                  </div>
+                </Link>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 };
