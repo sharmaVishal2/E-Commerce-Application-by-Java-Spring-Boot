@@ -3,6 +3,7 @@ import { Suspense, lazy, useState } from "react";
 import Navbar from "./components/Navbar";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RouteFallback from "./components/ui/RouteFallback";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
@@ -27,11 +28,7 @@ function App() {
     <BrowserRouter>
       <Navbar onSelectCategory={handleCategorySelect} />
       <Suspense
-        fallback={
-          <h2 className="text-center" style={{ padding: "10rem" }}>
-            Loading...
-          </h2>
-        }
+        fallback={<RouteFallback message="Loading storefront..." />}
       >
         <Routes>
           <Route

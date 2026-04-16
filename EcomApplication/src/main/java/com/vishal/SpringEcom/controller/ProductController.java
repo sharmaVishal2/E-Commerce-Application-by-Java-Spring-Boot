@@ -2,6 +2,7 @@ package com.vishal.springecom.controller;
 
 import com.vishal.springecom.model.Product;
 import com.vishal.springecom.service.ProductService;
+import org.springframework.data.domain.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,14 @@ public class ProductController {
     public ResponseEntity<List<Product>> getProducts(){
         return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
 
+    }
+
+    @GetMapping("/products/paged")
+    public ResponseEntity<Page<Product>> getProductsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        return new ResponseEntity<>(productService.getProductsPage(page, size), HttpStatus.OK);
     }
 
     @GetMapping("/product/{id}")

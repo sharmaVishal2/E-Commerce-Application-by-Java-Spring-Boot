@@ -1,20 +1,15 @@
 import { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import axios from "../axios";
 import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
 import { getCachedImageUrl, setCachedImageUrl } from "../utils/imageCache";
+import ProductCard from "./ui/ProductCard";
+import ProductGridSkeleton from "./ui/ProductGridSkeleton";
+import StatePanel from "./ui/StatePanel";
 
 const Products = ({ selectedCategory }) => {
-  const { data, isError, isLoading, addToCart } = useContext(AppContext);
+  const { data, isError, isLoading, addToCart, refreshData } = useContext(AppContext);
   const [products, setProducts] = useState([]);
-
-  const wakeupNote = (
-    <div className="products-wakeup-note">
-      First product fetch can take a few seconds if the backend is waking up
-      after being idle.
-    </div>
-  );
 
   useEffect(() => {
     if (!data || data.length === 0) {
@@ -22,9 +17,7 @@ const Products = ({ selectedCategory }) => {
       return;
     }
 
-    setProducts(
-      data.map((product) => ({ ...product, imageUrl: unplugged }))
-    );
+    setProducts(data.map((product) => ({ ...product, imageUrl: unplugged })));
 
     let isMounted = true;
 
@@ -72,136 +65,84 @@ const Products = ({ selectedCategory }) => {
 
   if (isError) {
     return (
-      <div className="home-status">
-        <img src={unplugged} alt="Error" style={{ width: "100px", height: "100px" }} />
-      </div>
+      <section className="products-page storefront-shell">
+        <div className="catalog-intro section-card">
+          <div>
+            <p className="eyebrow">Catalog</p>
+            <h1>Products</h1>
+            <p className="section-copy">The product service may still be waking up.</p>
+          </div>
+        </div>
+        <StatePanel
+          title="We couldn't load the catalog"
+          description="The API request failed. Retry once the backend is awake."
+          actionLabel="Retry"
+          onAction={refreshData}
+          tone="error"
+        />
+      </section>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="products-page">
-        {wakeupNote}
-        <div className="home-status home-status-loading">
-          <h2 className="text-center">Loading products...</h2>
+      <section className="products-page storefront-shell">
+        <div className="catalog-intro section-card">
+          <div>
+            <p className="eyebrow">Catalog</p>
+            <h1>Products</h1>
+            <p className="section-copy">
+              Loading products... the first request can take a few seconds if Render is resuming the backend.
+            </p>
+          </div>
         </div>
-      </div>
+        <div className="products-wakeup-note">Loading products...</div>
+        <ProductGridSkeleton count={8} />
+      </section>
     );
   }
 
   return (
-    <div className="products-page">
-      {wakeupNote}
-      <div
-        className="grid"
-        style={{
-          marginTop: "24px",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "20px",
-          padding: "0 20px 20px",
-        }}
-      >
+    <section className="products-page storefront-shell">
+      <div className="catalog-intro section-card">
+        <div>
+          <p className="eyebrow">Catalog</p>
+          <h1>{selectedCategory ? `${selectedCategory} products` : "Products"}</h1>
+          <p className="section-copy">
+            Clean product cards, clearer pricing, and stable loading states for slower API responses.
+          </p>
+        </div>
+        <div className="catalog-intro__meta">
+          <span>{filteredProducts.length} items</span>
+          <span>Responsive grid</span>
+        </div>
+      </div>
+
+      <div className="products-wakeup-note">
+        Loading placeholders appear immediately while the backend wakes up, reducing blank states and layout shifts.
+      </div>
+
+      <div className="products-grid">
         {filteredProducts.length === 0 ? (
-          <div className="home-status home-status-inline">
-            <h2 className="text-center">No Products Available</h2>
-          </div>
+          <StatePanel
+            title="No products found"
+            description={
+              selectedCategory
+                ? `No products are available in ${selectedCategory} right now.`
+                : "The catalog is currently empty."
+            }
+            actionLabel="Retry"
+            onAction={refreshData}
+            tone="empty"
+            compact
+          />
         ) : (
-          filteredProducts.map((product) => {
-            const { id, brand, name, price, productAvailable, imageUrl } = product;
-            return (
-              <div
-                className="card mb-3"
-                style={{
-                  width: "250px",
-                  height: "360px",
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                  borderRadius: "10px",
-                  overflow: "hidden",
-                  backgroundColor: productAvailable ? "#fff" : "#ccc",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "flex-start",
-                  alignItems: "stretch",
-                }}
-                key={id}
-              >
-                <Link
-                  to={`/product/${id}`}
-                  style={{ textDecoration: "none", color: "inherit" }}
-                >
-                  <img
-                    src={imageUrl}
-                    alt={name}
-                    onError={(event) => {
-                      event.currentTarget.onerror = null;
-                      event.currentTarget.src = unplugged;
-                    }}
-                    style={{
-                      width: "100%",
-                      height: "150px",
-                      objectFit: "cover",
-                      padding: "5px",
-                      margin: "0",
-                      borderRadius: "10px",
-                    }}
-                  />
-                  <div
-                    className="card-body"
-                    style={{
-                      flexGrow: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      padding: "10px",
-                    }}
-                  >
-                    <div>
-                      <h5
-                        className="card-title"
-                        style={{ margin: "0 0 10px 0", fontSize: "1.2rem" }}
-                      >
-                        {name.toUpperCase()}
-                      </h5>
-                      <i
-                        className="card-brand"
-                        style={{ fontStyle: "italic", fontSize: "0.8rem" }}
-                      >
-                        {"~ " + brand}
-                      </i>
-                    </div>
-                    <hr className="hr-line" style={{ margin: "10px 0" }} />
-                    <div className="home-cart-price">
-                      <h5
-                        className="card-text"
-                        style={{
-                          fontWeight: "600",
-                          fontSize: "1.1rem",
-                          marginBottom: "5px",
-                        }}
-                      >
-                        ${price}
-                      </h5>
-                    </div>
-                    <button
-                      className="btn-hover color-9"
-                      style={{ margin: "10px 25px 0px " }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        addToCart(product);
-                      }}
-                      disabled={!productAvailable}
-                    >
-                      {productAvailable ? "Add to Cart" : "Out of Stock"}
-                    </button>
-                  </div>
-                </Link>
-              </div>
-            );
-          })
+          filteredProducts.map((product) => (
+            <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
+          ))
         )}
       </div>
-    </div>
+    </section>
   );
 };
 

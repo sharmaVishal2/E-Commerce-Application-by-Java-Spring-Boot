@@ -2,6 +2,9 @@ package com.vishal.springecom.service;
 
 import com.vishal.springecom.model.Product;
 import com.vishal.springecom.repo.ProductRepo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +20,13 @@ public class ProductService {
 
     public List<Product> getAllProducts() {
         return productRepo.findAll();
+    }
+
+    public Page<Product> getProductsPage(int page, int size) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 50);
+        Pageable pageable = PageRequest.of(safePage, safeSize);
+        return productRepo.findAll(pageable);
     }
 
     public Product getProductById(int id) {

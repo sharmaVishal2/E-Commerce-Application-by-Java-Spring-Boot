@@ -1,8 +1,29 @@
-.dark-theme{
-    --root_background: #1f1f1f;}
-    .light-theme{
-        --root_background: white;
-    }
-:root{
-    background-color: #1f1f1f;
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  font-family: Inter, "Segoe UI", sans-serif;
+  background: #f3f6fb;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }

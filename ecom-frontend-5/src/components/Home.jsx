@@ -4,9 +4,11 @@ import axios from "../axios";
 import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
 import { getCachedImageUrl, setCachedImageUrl } from "../utils/imageCache";
+import ProductGridSkeleton from "./ui/ProductGridSkeleton";
+import StatePanel from "./ui/StatePanel";
 
-  const Home = () => {
-  const { data, isLoading } = useContext(AppContext);
+const Home = () => {
+  const { data, isError, isLoading, refreshData } = useContext(AppContext);
   const [featuredCards, setFeaturedCards] = useState([]);
   const featuredProducts = useMemo(() => data.slice(0, 2), [data]);
 
@@ -61,67 +63,81 @@ import { getCachedImageUrl, setCachedImageUrl } from "../utils/imageCache";
   }, [featuredProducts]);
 
   return (
-    <div className="landing-page">
+    <div className="landing-page storefront-shell">
       <section className="hero-section">
-        <div className="hero-copy">
-          <p className="hero-tag">Vishal Storefront</p>
-          <h1>Your destination for everyday tech, fashion, and lifestyle essentials.</h1>
+        <div className="hero-copy hero-card">
+          <p className="eyebrow">Fresh arrivals</p>
+          <h1>Modern essentials for everyday shopping, presented with less friction.</h1>
           <p className="hero-description">
-            Explore a curated ecommerce experience built for practical shopping:
-            smartphones, laptops, headphones, electronics, fashion, and more in one
-            clean catalog. Start here, then move into the full product collection
-            when you are ready to browse.
+            Browse a cleaner storefront for electronics, fashion, and lifestyle picks with
+            clearer pricing, calmer spacing, and a smoother first-load experience.
           </p>
           <div className="hero-actions">
-            <Link to="/products" className="hero-button primary">
-              Browse Products
+            <Link to="/products" className="button button--primary button--large">
+              Shop Now
             </Link>
-            <a
-              className="hero-button secondary"
-              href="https://sharmavishal2.github.io/Portfolio/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              View Portfolio
-            </a>
+            <Link to="/products" className="button button--secondary button--large">
+              Explore Catalog
+            </Link>
           </div>
         </div>
+
         <div className="hero-panel">
-          <div className="hero-panel-card">
-            <span className="hero-panel-label">About The Store</span>
-            <h3>Built to showcase products clearly, with a faster first experience for visitors.</h3>
+          <div className="hero-panel-card hero-card">
+            <span className="eyebrow">Why it feels faster</span>
+            <h3>Skeletons render immediately so the storefront never drops into a blank screen.</h3>
             <p>
-              The featured section below loads a small product preview first. That gives
-              visitors something useful to see immediately and also helps wake the
-              backend before they open the full catalog.
+              The backend can take a few seconds to wake up, so the homepage shows stable
+              placeholders and featured previews while product data arrives.
             </p>
-            <p className="hero-note">
-              First product fetch can still take a few seconds if the backend is waking
-              up after being idle.
-            </p>
+            <div className="hero-stat-grid">
+              <div className="hero-stat-card">
+                <strong>Responsive</strong>
+                <span>Mobile-first spacing and layout</span>
+              </div>
+              <div className="hero-stat-card">
+                <strong>Perceived speed</strong>
+                <span>Stable skeletons and no abrupt layout jumps</span>
+              </div>
+            </div>
+            <p className="hero-note">First fetch may still pause briefly while Render wakes the API.</p>
           </div>
         </div>
       </section>
 
-      <section className="featured-section">
+      <section className="featured-section section-card">
         <div className="featured-header">
           <div>
-            <p className="hero-tag">Featured Preview</p>
+            <p className="eyebrow">Featured Preview</p>
             <h2>Start with a quick look at a few products from the store</h2>
+            <p className="section-copy">A small preview loads first to give visitors immediate visual feedback.</p>
           </div>
-          <Link to="/products" className="featured-link">
+          <Link to="/products" className="button button--secondary">
             See full catalog
           </Link>
         </div>
 
         {isLoading && featuredCards.length === 0 ? (
-          <div className="featured-placeholder">
-            <h3>Loading featured products...</h3>
+          <div className="section-stack">
+            <p className="loading-copy">Loading products...</p>
+            <ProductGridSkeleton count={2} variant="featured" />
           </div>
+        ) : isError ? (
+          <StatePanel
+            title="Unable to load featured products"
+            description="The backend may still be waking up. Retry in a moment."
+            actionLabel="Retry"
+            onAction={refreshData}
+            tone="error"
+            compact
+          />
         ) : featuredCards.length === 0 ? (
-          <div className="featured-placeholder">
-            <h3>Featured products are not available right now.</h3>
-          </div>
+          <StatePanel
+            title="No featured products available"
+            description="Products will appear here once the catalog responds."
+            compact
+            tone="empty"
+          />
         ) : (
           <div className="featured-grid">
             {featuredCards.map((product) => (
@@ -129,17 +145,17 @@ import { getCachedImageUrl, setCachedImageUrl } from "../utils/imageCache";
                 <img
                   src={product.imageUrl}
                   alt={product.name}
-                  className="featured-image"
+                  className="featured-card__image"
                   onError={(event) => {
                     event.currentTarget.onerror = null;
                     event.currentTarget.src = unplugged;
                   }}
                 />
-                <div className="featured-body">
+                <div className="featured-card__body">
                   <p className="featured-category">{product.category}</p>
                   <h3>{product.name}</h3>
                   <p className="featured-brand">{product.brand}</p>
-                  <div className="featured-footer">
+                  <div className="featured-card__footer">
                     <span>${product.price}</span>
                     <span>{product.productAvailable ? "In stock" : "Out of stock"}</span>
                   </div>
