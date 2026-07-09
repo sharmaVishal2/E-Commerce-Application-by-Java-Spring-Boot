@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../axios";
 import AuthContext from "../Context/AuthContext";
+import { searchStaticProducts } from "../data/staticProducts";
 
 const Navbar = ({ onSelectCategory }) => {
   const { isAuthenticated, logout, user } = useContext(AuthContext);
@@ -30,10 +31,15 @@ const Navbar = ({ onSelectCategory }) => {
         const response = await axios.get(`/products/search?keyword=${input}`, {
           skipAuth: true,
         });
-        setSearchResults(response.data);
-        setNoResults(response.data.length === 0);
+        const apiResults = Array.isArray(response.data) ? response.data : [];
+        const results = apiResults.length > 0 ? apiResults : searchStaticProducts(input);
+        setSearchResults(results);
+        setNoResults(results.length === 0);
       } catch (error) {
         console.error("Error searching:", error);
+        const results = searchStaticProducts(input);
+        setSearchResults(results);
+        setNoResults(results.length === 0);
       }
     }, 350);
 

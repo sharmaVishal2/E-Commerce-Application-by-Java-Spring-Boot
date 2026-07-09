@@ -7,6 +7,8 @@ import { getCachedImageUrl, setCachedImageUrl } from "../utils/imageCache";
 import ProductGridSkeleton from "./ui/ProductGridSkeleton";
 import StatePanel from "./ui/StatePanel";
 
+const resolveInitialImage = (product) => product.imageUrl || unplugged;
+
 const Home = () => {
   const { data, isError, isLoading, refreshData } = useContext(AppContext);
   const [featuredCards, setFeaturedCards] = useState([]);
@@ -19,7 +21,7 @@ const Home = () => {
     }
 
     setFeaturedCards(
-      featuredProducts.map((product) => ({ ...product, imageUrl: unplugged }))
+      featuredProducts.map((product) => ({ ...product, imageUrl: resolveInitialImage(product) }))
     );
 
     let isMounted = true;
@@ -27,8 +29,8 @@ const Home = () => {
     const hydrateFeaturedImages = async () => {
       const updated = await Promise.all(
         featuredProducts.map(async (product) => {
-          if (!product.imageName) {
-            return { ...product, imageUrl: unplugged };
+          if (product.imageUrl || !product.imageName) {
+            return { ...product, imageUrl: resolveInitialImage(product) };
           }
 
           const cachedImageUrl = getCachedImageUrl(product.id);

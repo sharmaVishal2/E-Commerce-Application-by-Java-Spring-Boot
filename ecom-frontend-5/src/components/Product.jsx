@@ -5,6 +5,7 @@ import AppContext from "../Context/Context";
 import AuthContext from "../Context/AuthContext";
 import axios from "../axios";
 import unplugged from "../assets/unplugged.png";
+import { findStaticProductById } from "../data/staticProducts";
 
 const Product = () => {
   const { id } = useParams();
@@ -20,6 +21,13 @@ const Product = () => {
 
     const fetchProduct = async () => {
       try {
+        const staticProduct = findStaticProductById(id);
+        if (staticProduct) {
+          setProduct(staticProduct);
+          setImageUrl(staticProduct.imageUrl || unplugged);
+          return;
+        }
+
         const productRequest = axios.get(`/product/${id}`, { skipAuth: true });
         const imageRequest = axios.get(`/product/${id}/image`, {
           skipAuth: true,
@@ -44,7 +52,13 @@ const Product = () => {
         }
       } catch (error) {
         console.error("Error fetching product:", error);
-        setImageUrl(unplugged);
+        const staticProduct = findStaticProductById(id);
+        if (staticProduct) {
+          setProduct(staticProduct);
+          setImageUrl(staticProduct.imageUrl || unplugged);
+        } else {
+          setImageUrl(unplugged);
+        }
       } finally {
         setIsImageLoading(false);
       }
@@ -168,7 +182,7 @@ const Product = () => {
               className="btn btn-primary"
               type="button"
               onClick={handleEditClick}
-              disabled={!isAuthenticated}
+              disabled={!isAuthenticated || product.source === "static"}
               style={{
                 padding: "1rem 2rem",
                 fontSize: "1rem",
@@ -186,7 +200,7 @@ const Product = () => {
               className="btn btn-primary"
               type="button"
               onClick={deleteProduct}
-              disabled={!isAuthenticated}
+              disabled={!isAuthenticated || product.source === "static"}
               style={{
                 padding: "1rem 2rem",
                 fontSize: "1rem",

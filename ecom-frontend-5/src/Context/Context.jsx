@@ -1,5 +1,6 @@
 import axios from "../axios";
 import { useState, useEffect, createContext, useCallback } from "react";
+import { staticProducts } from "../data/staticProducts";
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -9,10 +10,10 @@ const AppContext = createContext({
   isLoading: true,
   hasLoadedData: false,
   cart: [],
-  addToCart: (product) => {},
-  removeFromCart: (productId) => {},
+  addToCart: () => {},
+  removeFromCart: () => {},
   refreshData:() =>{},
-  updateStockQuantity: (productId, newQuantity) =>{}
+  updateStockQuantity: () =>{}
   
 });
 
@@ -55,13 +56,16 @@ export const AppProvider = ({ children }) => {
     for (let attempt = 0; attempt < 3; attempt += 1) {
       try {
         const response = await axios.get("/products", { skipAuth: true });
-        setData(response.data);
+        const apiProducts = Array.isArray(response.data) ? response.data : [];
+        setData(apiProducts.length > 0 ? apiProducts : staticProducts);
         setHasLoadedData(true);
         setIsLoading(false);
         return;
       } catch (error) {
         if (attempt === 2) {
-          setIsError(error.message);
+          setData(staticProducts);
+          setHasLoadedData(true);
+          setIsError("");
           setIsLoading(false);
           return;
         }
@@ -73,6 +77,7 @@ export const AppProvider = ({ children }) => {
 
   const clearCart =() =>{
     setCart([]);
+    localStorage.setItem('cart', JSON.stringify([]));
   }
 
   useEffect(() => {

@@ -7,6 +7,8 @@ import ProductCard from "./ui/ProductCard";
 import ProductGridSkeleton from "./ui/ProductGridSkeleton";
 import StatePanel from "./ui/StatePanel";
 
+const resolveInitialImage = (product) => product.imageUrl || unplugged;
+
 const Products = ({ selectedCategory }) => {
   const { data, isError, isLoading, addToCart, refreshData } = useContext(AppContext);
   const [products, setProducts] = useState([]);
@@ -17,15 +19,15 @@ const Products = ({ selectedCategory }) => {
       return;
     }
 
-    setProducts(data.map((product) => ({ ...product, imageUrl: unplugged })));
+    setProducts(data.map((product) => ({ ...product, imageUrl: resolveInitialImage(product) })));
 
     let isMounted = true;
 
     const fetchImagesAndUpdateProducts = async () => {
       const updatedProducts = await Promise.all(
         data.map(async (product) => {
-          if (!product.imageName) {
-            return { ...product, imageUrl: unplugged };
+          if (product.imageUrl || !product.imageName) {
+            return { ...product, imageUrl: resolveInitialImage(product) };
           }
 
           const cachedImageUrl = getCachedImageUrl(product.id);

@@ -16,8 +16,8 @@ const Cart = () => {
       try {
         const cartItemsWithImages = await Promise.all(
           cart.map(async (item) => {
-            if (!item.imageName) {
-              return { ...item, imageUrl: unplugged };
+            if (item.imageUrl || !item.imageName) {
+              return { ...item, imageUrl: item.imageUrl || unplugged };
             }
 
             try {
@@ -88,9 +88,15 @@ const Cart = () => {
   const handleCheckout = async () => {
     try {
       for (const item of cartItems) {
-        const { imageUrl, imageName, imageData, imageType, quantity, ...rest } = item;
+        if (item.source === "static") {
+          continue;
+        }
+
         const updatedStockQuantity = item.stockQuantity - item.quantity;
-        const updatedProductData = { ...rest, stockQuantity: updatedStockQuantity };
+        const updatedProductData = { ...item, stockQuantity: updatedStockQuantity };
+        ["imageUrl", "imageName", "imageData", "imageType", "quantity"].forEach((field) => {
+          delete updatedProductData[field];
+        });
 
         const cartProduct = new FormData();
         if (item.imageFile) {
