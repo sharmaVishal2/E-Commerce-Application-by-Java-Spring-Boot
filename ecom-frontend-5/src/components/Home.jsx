@@ -12,7 +12,7 @@ const resolveInitialImage = (product) => product.imageUrl || unplugged;
 const Home = () => {
   const { data, isError, isLoading, refreshData } = useContext(AppContext);
   const [featuredCards, setFeaturedCards] = useState([]);
-  const featuredProducts = useMemo(() => data.slice(0, 2), [data]);
+  const featuredProducts = useMemo(() => data.slice(0, 4), [data]);
 
   useEffect(() => {
     if (!featuredProducts || featuredProducts.length === 0) {
@@ -166,6 +166,32 @@ const Home = () => {
             ))}
           </div>
         )}
+      </section>
+
+      <section className="home-panels">
+        <div className="section-card home-panel home-panel--accent">
+          <p className="eyebrow">Shop with intention</p>
+          <h2>Good products, clearly presented.</h2>
+          <p className="section-copy">A calmer way to compare the things you are considering, with useful details close at hand.</p>
+          <Link to="/products" className="button button--primary">Browse the catalog</Link>
+        </div>
+        <div className="section-card home-panel">
+          <p className="eyebrow">Built for the everyday</p>
+          <div className="benefit-list">
+            <div><strong>Clear product details</strong><span>See category, price, availability, and descriptions before you commit.</span></div>
+            <div><strong>Persistent shopping bag</strong><span>Your cart stays available as you move around the storefront.</span></div>
+            <div><strong>Responsive by default</strong><span>A focused experience from wide screens down to compact mobile layouts.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section-card home-contact">
+        <div>
+          <p className="eyebrow">Need a hand?</p>
+          <h2>Questions about the store or a product?</h2>
+          <p className="section-copy">Visit the project on GitHub to get in touch with the developer and follow the work behind the storefront.</p>
+        </div>
+        <a className="button button--secondary" href="https://github.com/sharmaVishal2/E-Commerce-Application-by-Java-Spring-Boot" target="_blank" rel="noreferrer">Open GitHub</a>
       </section>
     </div>
   );

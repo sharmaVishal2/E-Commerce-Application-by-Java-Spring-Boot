@@ -6,7 +6,7 @@ import { Button } from "react-bootstrap";
 import unplugged from "../assets/unplugged.png";
 
 const Cart = () => {
-  const { cart, removeFromCart, clearCart } = useContext(AppContext);
+  const { cart, removeFromCart, updateCartQuantity, clearCart } = useContext(AppContext);
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [showModal, setShowModal] = useState(false);
@@ -61,7 +61,9 @@ const Cart = () => {
     const newCartItems = cartItems.map((item) => {
       if (item.id === itemId) {
         if (item.quantity < item.stockQuantity) {
-          return { ...item, quantity: item.quantity + 1 };
+          const nextQuantity = item.quantity + 1;
+          updateCartQuantity(itemId, nextQuantity);
+          return { ...item, quantity: nextQuantity };
         }
         alert("Cannot add more than available stock");
       }
@@ -76,6 +78,8 @@ const Cart = () => {
         ? { ...item, quantity: Math.max(item.quantity - 1, 1) }
         : item
     );
+    const nextItem = newCartItems.find((item) => item.id === itemId);
+    if (nextItem) updateCartQuantity(itemId, nextItem.quantity);
     setCartItems(newCartItems);
   };
 

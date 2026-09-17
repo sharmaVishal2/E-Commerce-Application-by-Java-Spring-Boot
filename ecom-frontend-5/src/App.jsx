@@ -4,6 +4,8 @@ import Navbar from "./components/Navbar";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RouteFallback from "./components/ui/RouteFallback";
+import Footer from "./components/Footer";
+import { staticProducts } from "./data/staticProducts";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
@@ -63,6 +65,7 @@ function App() {
           />
         </Routes>
       </Suspense>
+      <Footer categories={[...new Set(staticProducts.map((product) => product.category))]} />
     </BrowserRouter>
   );
 }

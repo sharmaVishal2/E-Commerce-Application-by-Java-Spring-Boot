@@ -9,11 +9,12 @@ import { findStaticProductById } from "../data/staticProducts";
 
 const Product = () => {
   const { id } = useParams();
-  const { addToCart, removeFromCart, refreshData } = useContext(AppContext);
+  const { data, addToCart, removeFromCart, refreshData } = useContext(AppContext);
   const { isAuthenticated } = useContext(AuthContext);
   const [product, setProduct] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -92,9 +93,11 @@ const Product = () => {
   };
 
   const handlAddToCart = () => {
-    addToCart(product);
-    alert("Product added to cart");
+    addToCart(product, quantity);
   };
+  const relatedProducts = data
+    .filter((item) => item.id !== product?.id && item.category === product?.category)
+    .slice(0, 4);
   if (!product) {
     return (
       <h2 className="text-center" style={{ padding: "10rem" }}>
@@ -119,7 +122,6 @@ const Product = () => {
                 event.currentTarget.onerror = null;
                 event.currentTarget.src = unplugged;
               }}
-              style={{ width: "50%", height: "auto" }}
             />
           )}
         </div>
@@ -150,6 +152,11 @@ const Product = () => {
             <span style={{ fontSize: "2rem", fontWeight: "bold" }}>
               {"$" + product.price}
             </span>
+            <div className="quantity-control" aria-label="Product quantity">
+              <button type="button" onClick={() => setQuantity((current) => Math.max(1, current - 1))} aria-label="Decrease quantity">-</button>
+              <span>{quantity}</span>
+              <button type="button" onClick={() => setQuantity((current) => Math.min(product.stockQuantity || current + 1, current + 1))} aria-label="Increase quantity">+</button>
+            </div>
             <button
               className={`cart-btn ${
                 !product.productAvailable ? "disabled-btn" : ""
@@ -164,11 +171,11 @@ const Product = () => {
                 border: "none",
                 borderRadius: "5px",
                 cursor: "pointer",
-                marginBottom: "1rem",
               }}
             >
               {product.productAvailable ? "Add to cart" : "Out of Stock"}
             </button>
+            <button className="button button--secondary" type="button" onClick={handlAddToCart} disabled={!product.productAvailable}>Buy now</button>
             <h6 style={{ marginBottom: "1rem" }}>
               Stock Available :{" "}
               <i style={{ color: "green", fontWeight: "bold" }}>
@@ -216,6 +223,24 @@ const Product = () => {
           </div>
         </div>
       </div>
+      {relatedProducts.length > 0 ? (
+        <section className="related-products storefront-shell">
+          <div className="featured-header">
+            <div>
+              <p className="eyebrow">You may also like</p>
+              <h2>More from {product.category}</h2>
+            </div>
+          </div>
+          <div className="products-grid">
+            {relatedProducts.map((related) => (
+              <button className="related-product" type="button" key={related.id} onClick={() => navigate(`/product/${related.id}`)}>
+                <strong>{related.name}</strong>
+                <span>${related.price}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </>
   );
 };

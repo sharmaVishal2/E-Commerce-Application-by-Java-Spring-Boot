@@ -15,9 +15,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
 
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = async (useToken = true) => {
     try {
-      const response = await axios.get("/auth/me", { skipAuth: true });
+      const response = await axios.get("/auth/me", { skipAuth: !useToken });
       if (response.data?.authenticated) {
         setUser(response.data);
       } else {
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
 
   const completeOAuthLogin = async (token) => {
     localStorage.setItem("authToken", token);
-    await fetchCurrentUser();
+    await fetchCurrentUser(true);
   };
 
   return (

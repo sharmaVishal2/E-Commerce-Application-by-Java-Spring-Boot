@@ -8,7 +8,8 @@ const Navbar = ({ onSelectCategory }) => {
   const { isAuthenticated, logout, user } = useContext(AuthContext);
   const getInitialTheme = () => {
     const storedTheme = localStorage.getItem("theme");
-    return storedTheme ? storedTheme : "light-theme";
+    if (storedTheme) return storedTheme;
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark-theme" : "light-theme";
   };
   const [theme, setTheme] = useState(getInitialTheme());
   const [input, setInput] = useState("");
@@ -52,7 +53,13 @@ const Navbar = ({ onSelectCategory }) => {
 
   const handleCategorySelect = (category) => {
     onSelectCategory(category);
-    navigate("/products");
+    navigate(`/products?category=${encodeURIComponent(category)}`);
+  };
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    if (input.trim()) navigate(`/products?search=${encodeURIComponent(input.trim())}`);
+    else navigate("/products");
+    setShowSearchResults(false);
   };
   const toggleTheme = () => {
     const newTheme = theme === "dark-theme" ? "light-theme" : "dark-theme";
@@ -69,14 +76,7 @@ const Navbar = ({ onSelectCategory }) => {
     document.body.className = theme;
   }, [theme]);
 
-  const categories = [
-    "Laptop",
-    "Headphone",
-    "Mobile",
-    "Electronics",
-    "Toys",
-    "Fashion",
-  ];
+  const categories = ["Laptop", "Headphone", "Mobile", "Electronics", "Toys", "Fashion"];
   return (
     <>
       <header>
@@ -182,7 +182,7 @@ const Navbar = ({ onSelectCategory }) => {
                 </>
               ) : null}
               <div className="d-flex align-items-center cart">
-                <Link to="/cart" className="nav-link text-dark">
+                <Link to="/cart" className="nav-link">
                   <i
                     className="bi bi-cart me-2"
                     style={{ display: "flex", alignItems: "center" }}
@@ -190,14 +190,16 @@ const Navbar = ({ onSelectCategory }) => {
                     Cart
                   </i>
                 </Link>
-                <input
-                  className="form-control me-2"
-                  type="search"
-                  placeholder="Search"
-                  aria-label="Search"
-                  value={input}
-                  onChange={(e) => handleChange(e.target.value)}
-                />
+                <form onSubmit={handleSearchSubmit} className="navbar-search">
+                  <input
+                    className="form-control me-2"
+                    type="search"
+                    placeholder="Search products"
+                    aria-label="Search products"
+                    value={input}
+                    onChange={(e) => handleChange(e.target.value)}
+                  />
+                </form>
                 {showSearchResults && (
                   <ul className="list-group">
                     {searchResults.length > 0 ? (

@@ -1,4 +1,5 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import axios from "../axios";
 import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
@@ -11,6 +12,11 @@ const resolveInitialImage = (product) => product.imageUrl || unplugged;
 
 const Products = ({ selectedCategory }) => {
   const { data, isError, isLoading, addToCart, refreshData } = useContext(AppContext);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchTerm = searchParams.get("search")?.trim().toLowerCase() || "";
+  const categoryFromUrl = searchParams.get("category") || "";
+  const activeCategory = categoryFromUrl || selectedCategory || "";
+  const sortOrder = searchParams.get("sort") || "relevance";
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
@@ -61,9 +67,20 @@ const Products = ({ selectedCategory }) => {
     };
   }, [data]);
 
-  const filteredProducts = selectedCategory
-    ? products.filter((product) => product.category === selectedCategory)
-    : products;
+  const filteredProducts = useMemo(() => {
+    const filtered = products.filter((product) => {
+      const matchesCategory = !activeCategory || product.category === activeCategory;
+      const searchable = `${product.name} ${product.brand} ${product.category}`.toLowerCase();
+      return matchesCategory && (!searchTerm || searchable.includes(searchTerm));
+    });
+
+    return [...filtered].sort((left, right) => {
+      if (sortOrder === "price-low") return Number(left.price) - Number(right.price);
+      if (sortOrder === "price-high") return Number(right.price) - Number(left.price);
+      if (sortOrder === "name") return left.name.localeCompare(right.name);
+      return 0;
+    });
+  }, [products, searchTerm, activeCategory, sortOrder]);
 
   if (isError) {
     return (
@@ -109,14 +126,31 @@ const Products = ({ selectedCategory }) => {
       <div className="catalog-intro section-card">
         <div>
           <p className="eyebrow">Catalog</p>
-          <h1>{selectedCategory ? `${selectedCategory} products` : "Products"}</h1>
+            <h1>{searchTerm ? `Results for "${searchTerm}"` : activeCategory ? `${activeCategory} products` : "Products"}</h1>
           <p className="section-copy">
             Clean product cards, clearer pricing, and stable loading states for slower API responses.
           </p>
         </div>
         <div className="catalog-intro__meta">
           <span>{filteredProducts.length} items</span>
-          <span>Responsive grid</span>
+          <label className="catalog-sort">
+            <span className="visually-hidden">Sort products</span>
+            <select
+              className="form-select form-select-sm"
+              value={sortOrder}
+              onChange={(event) => {
+                const nextParams = new URLSearchParams(searchParams);
+                if (event.target.value === "relevance") nextParams.delete("sort");
+                else nextParams.set("sort", event.target.value);
+                setSearchParams(nextParams);
+              }}
+            >
+              <option value="relevance">Featured</option>
+              <option value="price-low">Price: low to high</option>
+              <option value="price-high">Price: high to low</option>
+              <option value="name">Name</option>
+            </select>
+          </label>
         </div>
       </div>
 
@@ -129,12 +163,17 @@ const Products = ({ selectedCategory }) => {
           <StatePanel
             title="No products found"
             description={
-              selectedCategory
-                ? `No products are available in ${selectedCategory} right now.`
+              searchTerm
+                ? `No products match “${searchTerm}”. Try another search.`
+                : activeCategory
+                ? `No products are available in ${activeCategory} right now.`
                 : "The catalog is currently empty."
             }
-            actionLabel="Retry"
-            onAction={refreshData}
+            actionLabel={searchTerm || activeCategory ? "Browse all products" : "Retry"}
+            onAction={() => {
+              if (searchTerm || activeCategory) setSearchParams(new URLSearchParams());
+              refreshData();
+            }}
             tone="empty"
             compact
           />

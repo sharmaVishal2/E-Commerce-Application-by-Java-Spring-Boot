@@ -7,7 +7,7 @@ const resolveDiscount = (product) => {
 };
 
 const ProductCard = ({ product, onAddToCart }) => {
-  const { id, brand, name, price, category, productAvailable, imageUrl } = product;
+  const { id, brand, name, price, category, productAvailable, imageUrl, rating } = product;
   const discount = resolveDiscount(product);
 
   return (
@@ -29,6 +29,7 @@ const ProductCard = ({ product, onAddToCart }) => {
           <p className="product-card__category">{category}</p>
           <h3>{name}</h3>
           <p className="product-card__brand">{brand}</p>
+          {rating != null ? <p className="product-card__rating" aria-label={`${rating} out of 5 stars`}>★ {rating}</p> : null}
           <div className="product-card__meta">
             <div>
               <span className="product-card__price">${price}</span>
