@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import axios, { AUTH_BASE_URL } from "../axios";
 
 const AuthContext = createContext({
@@ -15,20 +15,27 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
 
-  const fetchCurrentUser = async (useToken = true) => {
+  const fetchCurrentUser = useCallback(async ({ allowAnonymous = false } = {}) => {
     try {
-      const response = await axios.get("/auth/me", { skipAuth: !useToken });
+      const response = await axios.get("/auth/me", { skipAuth: !localStorage.getItem("authToken") });
       if (response.data?.authenticated) {
         setUser(response.data);
       } else {
         setUser(null);
+        if (!allowAnonymous) {
+          throw new Error("The server did not confirm the OAuth session.");
+        }
       }
+      return response.data;
     } catch (error) {
       setUser(null);
+      if (!allowAnonymous) {
+        throw error;
+      }
     } finally {
       setAuthReady(true);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (localStorage.getItem("authToken")) {
@@ -36,7 +43,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       setAuthReady(true);
     }
-  }, []);
+  }, [fetchCurrentUser]);
 
   const login = async (username, password) => {
     try {
@@ -77,10 +84,19 @@ export const AuthProvider = ({ children }) => {
     window.location.assign(`${AUTH_BASE_URL}/oauth2/authorization/${provider}`);
   };
 
-  const completeOAuthLogin = async (token) => {
+  const completeOAuthLogin = useCallback(async (token) => {
+    if (!token) {
+      throw new Error("OAuth did not return an access token.");
+    }
+
     localStorage.setItem("authToken", token);
-    await fetchCurrentUser(true);
-  };
+    const authenticatedUser = await fetchCurrentUser();
+    if (!authenticatedUser?.authenticated) {
+      localStorage.removeItem("authToken");
+      setUser(null);
+      throw new Error("OAuth authentication could not be verified.");
+    }
+  }, [fetchCurrentUser]);
 
   return (
     <AuthContext.Provider
