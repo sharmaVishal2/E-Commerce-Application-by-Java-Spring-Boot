@@ -5,9 +5,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RouteFallback from "./components/ui/RouteFallback";
 import Footer from "./components/Footer";
-import { staticProducts } from "./data/staticProducts";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const Home = lazy(() => import("./components/Home"));
 const Products = lazy(() => import("./components/Products"));
@@ -22,25 +19,13 @@ const OAuthCallback = lazy(() => import("./components/OAuthCallback"));
 function App() {
   const [selectedCategory, setSelectedCategory] = useState("");
 
-  const handleCategorySelect = (category) => {
-    setSelectedCategory(category);
-  };
-
   return (
     <BrowserRouter>
-      <Navbar onSelectCategory={handleCategorySelect} />
-      <Suspense
-        fallback={<RouteFallback message="Loading storefront..." />}
-      >
+      <Navbar onSelectCategory={setSelectedCategory} />
+      <Suspense fallback={<RouteFallback message="Loading…" />}>
         <Routes>
-          <Route
-            path="/"
-            element={<Home />}
-          />
-          <Route
-            path="/products"
-            element={<Products selectedCategory={selectedCategory} />}
-          />
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products selectedCategory={selectedCategory} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
@@ -65,7 +50,7 @@ function App() {
           />
         </Routes>
       </Suspense>
-      <Footer categories={[...new Set(staticProducts.map((product) => product.category))]} />
+      <Footer />
     </BrowserRouter>
   );
 }

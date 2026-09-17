@@ -1,197 +1,236 @@
-import { useContext, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import axios from "../axios";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios, { API_BASE_URL } from "../axios";
 import AppContext from "../Context/Context";
 import unplugged from "../assets/unplugged.png";
 import { getCachedImageUrl, setCachedImageUrl } from "../utils/imageCache";
 import ProductGridSkeleton from "./ui/ProductGridSkeleton";
 import StatePanel from "./ui/StatePanel";
 
-const resolveInitialImage = (product) => product.imageUrl || unplugged;
+const CATEGORIES = [
+  { name: "Laptop", icon: "💻" },
+  { name: "Headphone", icon: "🎧" },
+  { name: "Mobile", icon: "📱" },
+  { name: "Electronics", icon: "📷" },
+  { name: "Fashion", icon: "👟" },
+  { name: "Toys", icon: "🧸" },
+];
+
+const BENEFITS = [
+  { icon: "🔒", title: "Secure Payments", desc: "Your transactions are protected end-to-end." },
+  { icon: "🚚", title: "Fast Delivery", desc: "Orders processed and dispatched quickly." },
+  { icon: "✅", title: "Quality Products", desc: "Every item is reviewed before listing." },
+  { icon: "↩️", title: "Easy Returns", desc: "Hassle-free returns within the return window." },
+];
+
+const resolveInitialImage = (p) => p.imageUrl || unplugged;
 
 const Home = () => {
   const { data, isError, isLoading, refreshData } = useContext(AppContext);
   const [featuredCards, setFeaturedCards] = useState([]);
+  const [backendWaking, setBackendWaking] = useState(false);
+  const wakeAttempted = useRef(false);
+  const navigate = useNavigate();
+
   const featuredProducts = useMemo(() => data.slice(0, 4), [data]);
 
+  // Single lightweight backend wake-up on first mount
   useEffect(() => {
-    if (!featuredProducts || featuredProducts.length === 0) {
-      setFeaturedCards([]);
-      return;
-    }
+    if (wakeAttempted.current) return;
+    wakeAttempted.current = true;
+    setBackendWaking(true);
+    axios
+      .get("/health", { skipAuth: true, timeout: 15000 })
+      .catch(() => {})
+      .finally(() => setBackendWaking(false));
+  }, []);
 
-    setFeaturedCards(
-      featuredProducts.map((product) => ({ ...product, imageUrl: resolveInitialImage(product) }))
-    );
-
-    let isMounted = true;
-
-    const hydrateFeaturedImages = async () => {
+  useEffect(() => {
+    if (!featuredProducts.length) { setFeaturedCards([]); return; }
+    setFeaturedCards(featuredProducts.map((p) => ({ ...p, imageUrl: resolveInitialImage(p) })));
+    let mounted = true;
+    (async () => {
       const updated = await Promise.all(
-        featuredProducts.map(async (product) => {
-          if (product.imageUrl || !product.imageName) {
-            return { ...product, imageUrl: resolveInitialImage(product) };
-          }
-
-          const cachedImageUrl = getCachedImageUrl(product.id);
-          if (cachedImageUrl) {
-            return { ...product, imageUrl: cachedImageUrl };
-          }
-
+        featuredProducts.map(async (p) => {
+          if (p.imageUrl || !p.imageName) return { ...p, imageUrl: resolveInitialImage(p) };
+          const cached = getCachedImageUrl(p.id);
+          if (cached) return { ...p, imageUrl: cached };
           try {
-            const imageResponse = await axios.get(`/product/${product.id}/image`, {
-              skipAuth: true,
-              responseType: "blob",
-            });
-            const imageUrl = URL.createObjectURL(imageResponse.data);
-            setCachedImageUrl(product.id, imageUrl);
-            return { ...product, imageUrl };
-          } catch (error) {
-            return { ...product, imageUrl: unplugged };
-          }
+            const res = await axios.get(`/product/${p.id}/image`, { skipAuth: true, responseType: "blob" });
+            const url = URL.createObjectURL(res.data);
+            setCachedImageUrl(p.id, url);
+            return { ...p, imageUrl: url };
+          } catch { return { ...p, imageUrl: unplugged }; }
         })
       );
-
-      if (isMounted) {
-        setFeaturedCards(updated);
-      }
-    };
-
-    hydrateFeaturedImages();
-
-    return () => {
-      isMounted = false;
-    };
+      if (mounted) setFeaturedCards(updated);
+    })();
+    return () => { mounted = false; };
   }, [featuredProducts]);
 
   return (
-    <div className="landing-page storefront-shell">
-      <section className="hero-section">
-        <div className="hero-copy hero-card">
-          <p className="eyebrow">Fresh arrivals</p>
-          <h1>Modern essentials for everyday shopping, presented with less friction.</h1>
-          <p className="hero-description">
-            Browse a cleaner storefront for electronics, fashion, and lifestyle picks with
-            clearer pricing, calmer spacing, and a smoother first-load experience.
-          </p>
-          <div className="hero-actions">
-            <Link to="/products" className="button button--primary button--large">
-              Shop Now
-            </Link>
-            <Link to="/products" className="button button--secondary button--large">
-              Explore Catalog
-            </Link>
-          </div>
-        </div>
-
-        <div className="hero-panel">
-          <div className="hero-panel-card hero-card">
-            <span className="eyebrow">Why it feels faster</span>
-            <h3>Skeletons render immediately so the storefront never drops into a blank screen.</h3>
-            <p>
-              The backend can take a few seconds to wake up, so the homepage shows stable
-              placeholders and featured previews while product data arrives.
-            </p>
-            <div className="hero-stat-grid">
-              <div className="hero-stat-card">
-                <strong>Responsive</strong>
-                <span>Mobile-first spacing and layout</span>
-              </div>
-              <div className="hero-stat-card">
-                <strong>Perceived speed</strong>
-                <span>Stable skeletons and no abrupt layout jumps</span>
-              </div>
+    <div className="page">
+      {/* HERO */}
+      <section className="home-hero">
+        <div className="shell home-hero__inner">
+          <div>
+            <div className="home-hero__eyebrow">
+              <span>✦</span> New arrivals available
             </div>
-            <p className="hero-note">First fetch may still pause briefly while Render wakes the API.</p>
+            <h1>Shop smarter,<br />live better.</h1>
+            <p className="home-hero__sub">
+              Discover electronics, fashion, and everyday essentials — curated for quality,
+              presented with clarity.
+            </p>
+            {backendWaking && (
+              <div className="wakeup-notice" role="status">
+                <span className="wakeup-dot" />
+                Getting things ready… the backend may take a moment to wake up.
+              </div>
+            )}
+            <div className="home-hero__actions">
+              <Link to="/products" className="btn btn--primary btn--lg">Shop Now</Link>
+              <Link to="/products" className="btn btn--secondary btn--lg">Explore Catalog</Link>
+            </div>
+          </div>
+          <div className="home-hero__visual" aria-hidden="true">
+            <div className="home-hero__img-card">
+              <img
+                src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=75"
+                alt="Laptop"
+                loading="lazy"
+              />
+            </div>
+            <div className="home-hero__img-card">
+              <img
+                src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=75"
+                alt="Headphones"
+                loading="lazy"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="featured-section section-card">
-        <div className="featured-header">
-          <div>
-            <p className="eyebrow">Featured Preview</p>
-            <h2>Start with a quick look at a few products from the store</h2>
-            <p className="section-copy">A small preview loads first to give visitors immediate visual feedback.</p>
+      {/* CATEGORIES */}
+      <section className="home-section">
+        <div className="shell">
+          <div className="section-header">
+            <div>
+              <p className="section-eyebrow">Browse by category</p>
+              <h2 className="section-title">What are you looking for?</h2>
+            </div>
           </div>
-          <Link to="/products" className="button button--secondary">
-            See full catalog
-          </Link>
-        </div>
-
-        {isLoading && featuredCards.length === 0 ? (
-          <div className="section-stack">
-            <p className="loading-copy">Loading products...</p>
-            <ProductGridSkeleton count={2} variant="featured" />
-          </div>
-        ) : isError ? (
-          <StatePanel
-            title="Unable to load featured products"
-            description="The backend may still be waking up. Retry in a moment."
-            actionLabel="Retry"
-            onAction={refreshData}
-            tone="error"
-            compact
-          />
-        ) : featuredCards.length === 0 ? (
-          <StatePanel
-            title="No featured products available"
-            description="Products will appear here once the catalog responds."
-            compact
-            tone="empty"
-          />
-        ) : (
-          <div className="featured-grid">
-            {featuredCards.map((product) => (
-              <Link to={`/product/${product.id}`} className="featured-card" key={product.id}>
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="featured-card__image"
-                  onError={(event) => {
-                    event.currentTarget.onerror = null;
-                    event.currentTarget.src = unplugged;
-                  }}
-                />
-                <div className="featured-card__body">
-                  <p className="featured-category">{product.category}</p>
-                  <h3>{product.name}</h3>
-                  <p className="featured-brand">{product.brand}</p>
-                  <div className="featured-card__footer">
-                    <span>${product.price}</span>
-                    <span>{product.productAvailable ? "In stock" : "Out of stock"}</span>
-                  </div>
-                </div>
-              </Link>
+          <div className="categories-grid">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.name}
+                className="category-card"
+                onClick={() => navigate(`/products?category=${encodeURIComponent(cat.name)}`)}
+                aria-label={`Browse ${cat.name}`}
+              >
+                <span className="category-card__icon" aria-hidden="true">{cat.icon}</span>
+                <span className="category-card__name">{cat.name}</span>
+              </button>
             ))}
           </div>
-        )}
+        </div>
       </section>
 
-      <section className="home-panels">
-        <div className="section-card home-panel home-panel--accent">
-          <p className="eyebrow">Shop with intention</p>
-          <h2>Good products, clearly presented.</h2>
-          <p className="section-copy">A calmer way to compare the things you are considering, with useful details close at hand.</p>
-          <Link to="/products" className="button button--primary">Browse the catalog</Link>
+      {/* FEATURED PRODUCTS */}
+      <section className="home-section">
+        <div className="shell">
+          <div className="section-header">
+            <div>
+              <p className="section-eyebrow">Featured products</p>
+              <h2 className="section-title">Handpicked for you</h2>
+              <p className="section-sub">A quick look at what's in the store right now.</p>
+            </div>
+            <Link to="/products" className="btn btn--secondary">View all</Link>
+          </div>
+
+          {isLoading && featuredCards.length === 0 ? (
+            <ProductGridSkeleton count={4} />
+          ) : isError ? (
+            <StatePanel
+              title="Unable to load products"
+              description="The backend may still be waking up. Try again in a moment."
+              actionLabel="Retry"
+              onAction={refreshData}
+              tone="error"
+              compact
+            />
+          ) : featuredCards.length === 0 ? (
+            <StatePanel
+              title="No products yet"
+              description="Products will appear here once the catalog loads."
+              tone="empty"
+              compact
+            />
+          ) : (
+            <div className="products-grid">
+              {featuredCards.map((p) => (
+                <article key={p.id} className="product-card">
+                  <Link to={`/product/${p.id}`} className="product-card__link">
+                    <div className="product-card__img-wrap">
+                      <img
+                        src={p.imageUrl}
+                        alt={p.name}
+                        className="product-card__img"
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = unplugged; }}
+                      />
+                    </div>
+                    <div className="product-card__body">
+                      <p className="product-card__cat">{p.category}</p>
+                      <p className="product-card__name">{p.name}</p>
+                      <p className="product-card__brand">{p.brand}</p>
+                      <div className="product-card__footer">
+                        <span className="product-card__price">${p.price}</span>
+                        <span className={`product-card__stock ${p.productAvailable ? "product-card__stock--in" : "product-card__stock--out"}`}>
+                          {p.productAvailable ? "In stock" : "Out of stock"}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="section-card home-panel">
-          <p className="eyebrow">Built for the everyday</p>
-          <div className="benefit-list">
-            <div><strong>Clear product details</strong><span>See category, price, availability, and descriptions before you commit.</span></div>
-            <div><strong>Persistent shopping bag</strong><span>Your cart stays available as you move around the storefront.</span></div>
-            <div><strong>Responsive by default</strong><span>A focused experience from wide screens down to compact mobile layouts.</span></div>
+      </section>
+
+      {/* BENEFITS */}
+      <section className="home-section">
+        <div className="shell">
+          <div className="section-header">
+            <div>
+              <p className="section-eyebrow">Why shop with us</p>
+              <h2 className="section-title">Built around you</h2>
+            </div>
+          </div>
+          <div className="benefits-grid">
+            {BENEFITS.map((b) => (
+              <div key={b.title} className="benefit-card">
+                <div className="benefit-card__icon" aria-hidden="true">{b.icon}</div>
+                <h4>{b.title}</h4>
+                <p>{b.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="section-card home-contact">
-        <div>
-          <p className="eyebrow">Need a hand?</p>
-          <h2>Questions about the store or a product?</h2>
-          <p className="section-copy">Visit the project on GitHub to get in touch with the developer and follow the work behind the storefront.</p>
+      {/* PROMO BANNER */}
+      <section className="home-section">
+        <div className="shell">
+          <div className="promo-banner">
+            <div className="promo-banner__text">
+              <h2>Explore the full catalog</h2>
+              <p>Browse all categories, filter by price, and find exactly what you need.</p>
+            </div>
+            <Link to="/products" className="btn btn--primary btn--lg">Shop all products</Link>
+          </div>
         </div>
-        <a className="button button--secondary" href="https://github.com/sharmaVishal2/E-Commerce-Application-by-Java-Spring-Boot" target="_blank" rel="noreferrer">Open GitHub</a>
       </section>
     </div>
   );

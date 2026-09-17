@@ -1,39 +1,53 @@
-import { Modal, Button } from 'react-bootstrap';
+import unplugged from "../assets/unplugged.png";
 
 const CheckoutPopup = ({ show, handleClose, cartItems, totalPrice, handleCheckout }) => {
+  if (!show) return null;
+
   return (
-    <div className="checkoutPopup">
-   
-    <Modal show={show} onHide={handleClose}>
-      <Modal.Header closeButton>
-        <Modal.Title>Checkout</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <div className="checkout-items">
+    <div
+      className="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="checkout-title"
+      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
+    >
+      <div className="modal-box">
+        <div className="modal-header">
+          <h3 id="checkout-title">Order Review</h3>
+          <button className="modal-close" type="button" aria-label="Close" onClick={handleClose}>
+            <i className="bi bi-x-lg" />
+          </button>
+        </div>
+        <div className="modal-body">
           {cartItems.map((item) => (
-            <div key={item.id} className="checkout-item" style={{ display: 'flex', marginBottom: '10px' }}>
-              <img src={item.imageUrl} alt={item.name} className="cart-item-image" style={{ width: '150px', marginRight: '10px' }} />
-              <div>
-                <b><p>{item.name}</p></b>
-                <p>Quantity: {item.quantity}</p>
-                <p>Price: ${item.price * item.quantity}</p>
+            <div key={item.id} className="modal-item">
+              <img
+                src={item.imageUrl || unplugged}
+                alt={item.name}
+                className="modal-item__img"
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = unplugged; }}
+              />
+              <div className="modal-item__info">
+                <p className="modal-item__name">{item.name}</p>
+                <p className="modal-item__qty">Qty: {item.quantity}</p>
               </div>
+              <span className="modal-item__price">${(item.price * item.quantity).toFixed(2)}</span>
             </div>
           ))}
-          <div >
-            <h5 style={{color:'black' , display:'flex',justifyContent:'center',fontSize:'1.3rem', fontWeight:'bold'}} >Total: ${totalPrice}</h5>
+          <div className="modal-total">
+            <span>Total</span>
+            <span>${totalPrice.toFixed(2)}</span>
           </div>
         </div>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
-          Close
-        </Button>
-        <Button variant="primary" onClick={handleCheckout}>
-          Confirm Purchase
-        </Button>
-      </Modal.Footer>
-    </Modal>
+        <div className="modal-footer">
+          <button className="btn btn--secondary btn--full" type="button" onClick={handleClose}>
+            Cancel
+          </button>
+          <button className="btn btn--primary btn--full" type="button" onClick={handleCheckout}>
+            Confirm Purchase
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,14 +1,12 @@
-const RouteFallback = ({ message = "Loading page..." }) => {
-  return (
-    <div className="route-fallback">
-      <div className="route-fallback__shell">
-        <div className="skeleton-line skeleton-line--sm" />
-        <div className="skeleton-line skeleton-line--lg" />
-        <div className="skeleton-line skeleton-line--md" />
-        <p>{message}</p>
-      </div>
+const RouteFallback = ({ message = "Loading page…" }) => (
+  <div className="route-fallback">
+    <div className="route-fallback__card">
+      <div className="skel skel--line skel--line-sm" />
+      <div className="skel skel--line skel--line-lg" />
+      <div className="skel skel--line skel--line-md" />
+      <p>{message}</p>
     </div>
-  );
-};
+  </div>
+);
 
 export default RouteFallback;

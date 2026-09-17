@@ -10,28 +10,39 @@ const OAuthCallback = () => {
 
   useEffect(() => {
     const token = searchParams.get("token");
-
     if (!token) {
       navigate("/login", { replace: true });
       return;
     }
-
-    let redirectTimer;
-
+    let timer;
     completeOAuthLogin(token)
       .then(() => navigate("/", { replace: true }))
-      .catch((oauthError) => {
-        setError(oauthError.message || "Unable to verify your sign-in.");
-        redirectTimer = window.setTimeout(() => navigate("/login", { replace: true }), 2500);
+      .catch((err) => {
+        setError(err.message || "Unable to verify your sign-in.");
+        timer = window.setTimeout(() => navigate("/login", { replace: true }), 2500);
       });
-
-    return () => window.clearTimeout(redirectTimer);
+    return () => window.clearTimeout(timer);
   }, [completeOAuthLogin, navigate, searchParams]);
 
   return (
-    <h2 className="text-center" style={{ padding: "10rem" }}>
-      {error || "Completing sign in..."}
-    </h2>
+    <div className="oauth-callback">
+      <div className="oauth-callback__card">
+        {error ? (
+          <>
+            <span style={{ fontSize: "2rem" }}>⚠</span>
+            <h3>Sign-in failed</h3>
+            <p>{error}</p>
+            <p style={{ fontSize: "0.8rem", color: "var(--muted)" }}>Redirecting to login…</p>
+          </>
+        ) : (
+          <>
+            <div className="oauth-spinner" aria-label="Loading" />
+            <h3>Completing sign in…</h3>
+            <p>Please wait a moment.</p>
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 

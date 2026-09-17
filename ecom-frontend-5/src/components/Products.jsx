@@ -8,7 +8,7 @@ import ProductCard from "./ui/ProductCard";
 import ProductGridSkeleton from "./ui/ProductGridSkeleton";
 import StatePanel from "./ui/StatePanel";
 
-const resolveInitialImage = (product) => product.imageUrl || unplugged;
+const resolveInitialImage = (p) => p.imageUrl || unplugged;
 
 const Products = ({ selectedCategory }) => {
   const { data, isError, isLoading, addToCart, refreshData } = useContext(AppContext);
@@ -20,170 +20,119 @@ const Products = ({ selectedCategory }) => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    if (!data || data.length === 0) {
-      setProducts([]);
-      return;
-    }
-
-    setProducts(data.map((product) => ({ ...product, imageUrl: resolveInitialImage(product) })));
-
-    let isMounted = true;
-
-    const fetchImagesAndUpdateProducts = async () => {
-      const updatedProducts = await Promise.all(
-        data.map(async (product) => {
-          if (product.imageUrl || !product.imageName) {
-            return { ...product, imageUrl: resolveInitialImage(product) };
-          }
-
-          const cachedImageUrl = getCachedImageUrl(product.id);
-          if (cachedImageUrl) {
-            return { ...product, imageUrl: cachedImageUrl };
-          }
-
+    if (!data?.length) { setProducts([]); return; }
+    setProducts(data.map((p) => ({ ...p, imageUrl: resolveInitialImage(p) })));
+    let mounted = true;
+    (async () => {
+      const updated = await Promise.all(
+        data.map(async (p) => {
+          if (p.imageUrl || !p.imageName) return { ...p, imageUrl: resolveInitialImage(p) };
+          const cached = getCachedImageUrl(p.id);
+          if (cached) return { ...p, imageUrl: cached };
           try {
-            const response = await axios.get(`/product/${product.id}/image`, {
-              skipAuth: true,
-              responseType: "blob",
-            });
-            const imageUrl = URL.createObjectURL(response.data);
-            setCachedImageUrl(product.id, imageUrl);
-            return { ...product, imageUrl };
-          } catch (error) {
-            return { ...product, imageUrl: unplugged };
-          }
+            const res = await axios.get(`/product/${p.id}/image`, { skipAuth: true, responseType: "blob" });
+            const url = URL.createObjectURL(res.data);
+            setCachedImageUrl(p.id, url);
+            return { ...p, imageUrl: url };
+          } catch { return { ...p, imageUrl: unplugged }; }
         })
       );
-
-      if (isMounted) {
-        setProducts(updatedProducts);
-      }
-    };
-
-    fetchImagesAndUpdateProducts();
-
-    return () => {
-      isMounted = false;
-    };
+      if (mounted) setProducts(updated);
+    })();
+    return () => { mounted = false; };
   }, [data]);
 
   const filteredProducts = useMemo(() => {
-    const filtered = products.filter((product) => {
-      const matchesCategory = !activeCategory || product.category === activeCategory;
-      const searchable = `${product.name} ${product.brand} ${product.category}`.toLowerCase();
-      return matchesCategory && (!searchTerm || searchable.includes(searchTerm));
+    const filtered = products.filter((p) => {
+      const matchesCat = !activeCategory || p.category === activeCategory;
+      const searchable = `${p.name} ${p.brand} ${p.category}`.toLowerCase();
+      return matchesCat && (!searchTerm || searchable.includes(searchTerm));
     });
-
-    return [...filtered].sort((left, right) => {
-      if (sortOrder === "price-low") return Number(left.price) - Number(right.price);
-      if (sortOrder === "price-high") return Number(right.price) - Number(left.price);
-      if (sortOrder === "name") return left.name.localeCompare(right.name);
+    return [...filtered].sort((a, b) => {
+      if (sortOrder === "price-low") return Number(a.price) - Number(b.price);
+      if (sortOrder === "price-high") return Number(b.price) - Number(a.price);
+      if (sortOrder === "name") return a.name.localeCompare(b.name);
       return 0;
     });
   }, [products, searchTerm, activeCategory, sortOrder]);
 
-  if (isError) {
-    return (
-      <section className="products-page storefront-shell">
-        <div className="catalog-intro section-card">
-          <div>
-            <p className="eyebrow">Catalog</p>
-            <h1>Products</h1>
-            <p className="section-copy">The product service may still be waking up.</p>
-          </div>
-        </div>
-        <StatePanel
-          title="We couldn't load the catalog"
-          description="The API request failed. Retry once the backend is awake."
-          actionLabel="Retry"
-          onAction={refreshData}
-          tone="error"
-        />
-      </section>
-    );
-  }
+  const clearFilters = () => setSearchParams(new URLSearchParams());
 
-  if (isLoading) {
-    return (
-      <section className="products-page storefront-shell">
-        <div className="catalog-intro section-card">
-          <div>
-            <p className="eyebrow">Catalog</p>
-            <h1>Products</h1>
-            <p className="section-copy">
-              Loading products... the first request can take a few seconds if Render is resuming the backend.
-            </p>
-          </div>
-        </div>
-        <div className="products-wakeup-note">Loading products...</div>
-        <ProductGridSkeleton count={8} />
-      </section>
-    );
-  }
+  const pageTitle = searchTerm
+    ? `Results for "${searchTerm}"`
+    : activeCategory
+    ? `${activeCategory}`
+    : "All Products";
 
   return (
-    <section className="products-page storefront-shell">
-      <div className="catalog-intro section-card">
-        <div>
-          <p className="eyebrow">Catalog</p>
-            <h1>{searchTerm ? `Results for "${searchTerm}"` : activeCategory ? `${activeCategory} products` : "Products"}</h1>
-          <p className="section-copy">
-            Clean product cards, clearer pricing, and stable loading states for slower API responses.
-          </p>
-        </div>
-        <div className="catalog-intro__meta">
-          <span>{filteredProducts.length} items</span>
-          <label className="catalog-sort">
-            <span className="visually-hidden">Sort products</span>
+    <div className="page">
+      <div className="shell products-page">
+        <div className="catalog-header">
+          <div>
+            <p className="section-eyebrow">Catalog</p>
+            <h1>{pageTitle}</h1>
+          </div>
+          <div className="catalog-meta">
+            {!isLoading && (
+              <span className="catalog-count">{filteredProducts.length} item{filteredProducts.length !== 1 ? "s" : ""}</span>
+            )}
+            {(searchTerm || activeCategory) && (
+              <button className="btn btn--ghost btn--sm" onClick={clearFilters}>
+                <i className="bi bi-x" /> Clear filters
+              </button>
+            )}
             <select
-              className="form-select form-select-sm"
+              className="catalog-sort"
               value={sortOrder}
-              onChange={(event) => {
-                const nextParams = new URLSearchParams(searchParams);
-                if (event.target.value === "relevance") nextParams.delete("sort");
-                else nextParams.set("sort", event.target.value);
-                setSearchParams(nextParams);
+              aria-label="Sort products"
+              onChange={(e) => {
+                const next = new URLSearchParams(searchParams);
+                if (e.target.value === "relevance") next.delete("sort");
+                else next.set("sort", e.target.value);
+                setSearchParams(next);
               }}
             >
               <option value="relevance">Featured</option>
               <option value="price-low">Price: low to high</option>
               <option value="price-high">Price: high to low</option>
-              <option value="name">Name</option>
+              <option value="name">Name A–Z</option>
             </select>
-          </label>
+          </div>
         </div>
-      </div>
 
-      <div className="products-wakeup-note">
-        Loading placeholders appear immediately while the backend wakes up, reducing blank states and layout shifts.
-      </div>
-
-      <div className="products-grid">
-        {filteredProducts.length === 0 ? (
+        {isError ? (
+          <StatePanel
+            title="Couldn't load the catalog"
+            description="The API request failed. The backend may still be waking up — retry in a moment."
+            actionLabel="Retry"
+            onAction={refreshData}
+            tone="error"
+          />
+        ) : isLoading ? (
+          <ProductGridSkeleton count={8} />
+        ) : filteredProducts.length === 0 ? (
           <StatePanel
             title="No products found"
             description={
               searchTerm
-                ? `No products match “${searchTerm}”. Try another search.`
+                ? `No products match "${searchTerm}". Try a different search.`
                 : activeCategory
-                ? `No products are available in ${activeCategory} right now.`
+                ? `No products in ${activeCategory} right now.`
                 : "The catalog is currently empty."
             }
             actionLabel={searchTerm || activeCategory ? "Browse all products" : "Retry"}
-            onAction={() => {
-              if (searchTerm || activeCategory) setSearchParams(new URLSearchParams());
-              refreshData();
-            }}
+            onAction={() => { clearFilters(); if (!searchTerm && !activeCategory) refreshData(); }}
             tone="empty"
-            compact
           />
         ) : (
-          filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
-          ))
+          <div className="products-grid">
+            {filteredProducts.map((p) => (
+              <ProductCard key={p.id} product={p} onAddToCart={addToCart} />
+            ))}
+          </div>
         )}
       </div>
-    </section>
+    </div>
   );
 };
 
